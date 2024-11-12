@@ -52,6 +52,7 @@ if option == "Create":
 
 elif option == "Update":
     admin_id = st.number_input("Enter Admin ID to Update:", min_value=1, step=1)
+    new_password = st.text_input("New Password: ", type="password")
     new_email = st.text_input("New Email:")
     new_phone = st.text_input("New Phone Number:")
 
