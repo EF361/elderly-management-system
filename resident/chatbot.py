@@ -1,10 +1,8 @@
 import streamlit as st
 
 st.title("Chatbot Interaction")
-st.write("Hello! How can I assist you today?")
 
-user_input = st.text_input("Your message:")
-if user_input:
-    st.write("You:", user_input)
-    # Placeholder response
-    st.write("Chatbot: I'll check your schedule for you.")
+messages = st.container(height=300)
+if prompt := st.chat_input("Say something"):
+    messages.chat_message("user").write(prompt)
+    messages.chat_message("assistant").write(f"Echo: {prompt}")
