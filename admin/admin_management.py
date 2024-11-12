@@ -61,9 +61,14 @@ elif option == "Update":
             # Update record using `text`
             conn.execute(
                 text(
-                    "UPDATE admin SET email = :new_email, contact_number = :new_phone WHERE admin_id = :admin_id"
+                    "UPDATE admin SET email = :new_email, contact_number = :new_phone, password = :new_password WHERE admin_id = :admin_id"
                 ),
-                {"new_email": new_email, "new_phone": new_phone, "admin_id": admin_id},
+                {
+                    "new_email": new_email,
+                    "new_phone": new_phone,
+                    "new_password": new_password,
+                    "admin_id": admin_id,
+                },
             )
             conn.commit()
 
