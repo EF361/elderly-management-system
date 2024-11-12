@@ -1,23 +1,12 @@
 import streamlit as st
-from sqlalchemy import create_engine, text
+from management import UserManagement
 
-# Initialize connection
-conn = st.connection("postgresql", type="sql")
-engine = create_engine("postgresql://postgres:12345@localhost:5432/elderlymanagement")
+user_management = UserManagement(table_name="Admin")
 
+st.title(f"{user_management.table_name.capitalize()} Management")
 
-def showTable():
-    """show table that are in the admin table"""
-    st.dataframe(df, use_container_width=True)
-
-
-# Perform initial query to display the admin table.
-df = conn.query("SELECT * FROM admin;", ttl=0)
-
-st.title("Admin Management")
-
-# Show the table
-showTable()
+# Display the table
+user_management.show_table()
 
 # Select operation
 option = st.selectbox(
@@ -26,64 +15,30 @@ option = st.selectbox(
 )
 
 if option == "Create":
-    name = st.text_input(label="Enter Name:")
-    email = st.text_input(label="Enter Email:")
-    phone_number = st.text_input(label="Phone Number:")
-    password = st.text_input(label="Password: ", type="password")
-
-    if st.button("Add Admin"):
-        with conn.connect() as conn:
-            # Insert new record using `text`
-            conn.execute(
-                text(
-                    "INSERT INTO admin (admin_name, email, password, contact_number) VALUES (:admin_name, :email, :password, :contact_number)"
-                ),
-                {
-                    "admin_name": name,
-                    "email": email,
-                    "contact_number": phone_number,
-                    "password": password,
-                },
-            )
-            conn.commit()
-
-        st.success("Record created successfully!")
-
+    # Gather inputs based on table fields
+    inputs = {
+        field: st.text_input(
+            f"Enter {field.replace('_', ' ').capitalize()}:",
+            type="password" if "password" in field else "default",
+        )
+        for field in user_management.fields["fields"]
+    }
+    if st.button("Add User"):
+        user_management.create_record(**inputs)
 
 elif option == "Update":
-    admin_id = st.number_input("Enter Admin ID to Update:", min_value=1, step=1)
-    new_password = st.text_input("New Password: ", type="password")
-    new_email = st.text_input("New Email:")
-    new_phone = st.text_input("New Phone Number:")
-
-    if st.button("Update Admin"):
-        with conn.connect() as conn:
-            # Update record using `text`
-            conn.execute(
-                text(
-                    "UPDATE admin SET email = :new_email, contact_number = :new_phone, password = :new_password WHERE admin_id = :admin_id"
-                ),
-                {
-                    "new_email": new_email,
-                    "new_phone": new_phone,
-                    "new_password": new_password,
-                    "admin_id": admin_id,
-                },
-            )
-            conn.commit()
-
-        st.success("Record updated successfully!")
+    user_id = st.number_input("Enter User ID to Update:", min_value=1, step=1)
+    inputs = {
+        field: st.text_input(
+            f"New {field.replace('_', ' ').capitalize()}:",
+            type="password" if "password" in field else "default",
+        )
+        for field in user_management.fields["fields"]
+    }
+    if st.button("Update User"):
+        user_management.update_record(user_id, **inputs)
 
 elif option == "Delete":
-    admin_id = st.number_input("Enter Admin ID to Delete:", min_value=1, step=1)
-
-    if st.button("Execute Delete"):
-        with conn.connect() as conn:
-            # Delete record using `text`
-            conn.execute(
-                text("DELETE FROM admin WHERE admin_id = :admin_id"),
-                {"admin_id": admin_id},
-            )
-            conn.commit()
-
-        st.success("Record deleted successfully!")
+    user_id = st.number_input("Enter User ID to Delete:", min_value=1, step=1)
+    if st.button("Delete User"):
+        user_management.delete_record(user_id)

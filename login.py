@@ -1,4 +1,9 @@
 import streamlit as st
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import SQLAlchemyError
+
+# Database connection setup
+engine = create_engine("postgresql://postgres:12345@localhost:5432/elderlymanagement")
 
 st.set_page_config(page_title="Carelink", page_icon=":material/spa:")
 
@@ -9,11 +14,37 @@ ROLES = [None, "Resident", "Staff", "Admin"]
 
 
 def login():
-    role = st.selectbox("Choose your role", ROLES)
+    role = st.selectbox(
+        "Choose your role", ROLES[1:]
+    )  # Remove None option for role selection
+    email = st.text_input("Email")
+    password = st.text_input("Password", type="password")
 
     if st.button("Log in"):
-        st.session_state.role = role
-        st.rerun()
+        if email and password and role:
+            # Define table based on role
+            table_name = role.lower()
+
+            # Query to authenticate user
+            query = text(
+                f"SELECT * FROM {table_name} WHERE email = :email AND password = :password"
+            )
+            try:
+                with engine.connect() as conn:
+                    result = conn.execute(
+                        query, {"email": email, "password": password}
+                    ).fetchone()
+                    if result:
+                        st.session_state.role = role
+                        st.success(f"Logged in successfully as {role}")
+                        st.rerun()
+                    else:
+                        st.error("Invalid email or password")
+            except SQLAlchemyError as e:
+                st.error("Error during login. Please try again later.")
+                print(e)
+        else:
+            st.warning("Please enter all fields")
 
 
 def logout():

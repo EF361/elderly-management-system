@@ -1,24 +1,44 @@
 import streamlit as st
+from management import UserManagement
 
-st.title("Resident Management")
+user_management = UserManagement(table_name="Resident")
 
-# Search bar
-search = st.text_input("Search residents by name or ID...")
+st.title(f"{user_management.table_name.capitalize()} Management")
 
-# Display Resident List
-st.write("## Resident List")
-resident_data = [
-    {"name": "John Doe", "room": 101, "history": "Diabetes"},
-    {"name": "Jane Smith", "room": 102, "history": "Hypertension"},
-    {"name": "Michael Johnson", "room": 103, "history": "Heart Disease"},
-    {"name": "Sarah Wilson", "room": 104, "history": "Stroke"},
-]
-for i, resident in enumerate(resident_data):
-    with st.expander(f"{resident['name']} (Room {resident['room']})"):
-        st.write(f"Medical History: {resident['history']}")
-        st.button("View Resident", key=f"view-button-resident-{i}")
-        st.button("Edit Resident", key=f"edit-button-resident-{i}")
-        st.button("Delete Resident", key=f"delete-button-resident-{i}")
+# Display the table
+user_management.show_table()
 
-# Add Resident Button
-st.button("Add Resident", key="add-button-2")
+# Select operation
+option = st.selectbox(
+    label="Select an operation",
+    options=["Create", "Update", "Delete"],
+)
+
+if option == "Create":
+    # Gather inputs based on table fields
+    inputs = {
+        field: st.text_input(
+            f"Enter {field.replace('_', ' ').capitalize()}:",
+            type="password" if "password" in field else "default",
+        )
+        for field in user_management.fields["fields"]
+    }
+    if st.button("Add User"):
+        user_management.create_record(**inputs)
+
+elif option == "Update":
+    user_id = st.number_input("Enter User ID to Update:", min_value=1, step=1)
+    inputs = {
+        field: st.text_input(
+            f"New {field.replace('_', ' ').capitalize()}:",
+            type="password" if "password" in field else "default",
+        )
+        for field in user_management.fields["fields"]
+    }
+    if st.button("Update User"):
+        user_management.update_record(user_id, **inputs)
+
+elif option == "Delete":
+    user_id = st.number_input("Enter User ID to Delete:", min_value=1, step=1)
+    if st.button("Delete User"):
+        user_management.delete_record(user_id)
