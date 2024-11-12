@@ -1,5 +1,5 @@
 import streamlit as st
-from class.management import UserManagement
+from management import UserManagement
 
 user_management = UserManagement(table_name="Resident")
 

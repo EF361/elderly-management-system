@@ -18,7 +18,12 @@ class UserManagement:
         table_fields = {
             "admin": {
                 "primary_key": "admin_id",
-                "fields": ["admin_name", "email", "password", "contact_number"],
+                "fields": [
+                    "admin_name",
+                    "email",
+                    "password",
+                    "contact_number",
+                ],
             },
             "resident": {
                 "primary_key": "resident_id",
@@ -28,6 +33,8 @@ class UserManagement:
                     "gender",
                     "contact_number",
                     "address",
+                    "email",
+                    "password",
                 ],
             },
             "staff": {
@@ -37,6 +44,7 @@ class UserManagement:
                     "role",
                     "contact_number",
                     "email",
+                    "password",
                     "hire_date",
                 ],
             },
