@@ -1,87 +1,142 @@
 import streamlit as st
-from sqlalchemy import create_engine, text
-from datetime import date
-from fpdf import FPDF
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.lib.units import inch
+from reportlab.pdfgen import canvas
+from datetime import datetime
+import io
+import psycopg2
 
-# Database connection setup
-engine = create_engine("postgresql://postgres:12345@localhost:5432/elderlymanagement")
 
+# Function to connect to the PostgreSQL database
+def connect_to_db():
+    return psycopg2.connect(
+        dbname="elderlymanagement",
+        user="postgres",
+        password="12345",
+        host="localhost",
+        port="5432",
+    )
+
+
+# Function to fetch residents and staff for dropdown selection
+def get_residents_staff():
+    conn = connect_to_db()
+    cur = conn.cursor()
+    # Fetch residents
+    cur.execute("SELECT resident_id, resident_name FROM Resident")
+    residents = cur.fetchall()
+    # Fetch staff
+    cur.execute("SELECT staff_id, staff_name FROM Staff")
+    staff = cur.fetchall()
+    conn.close()
+    return residents, staff
+
+
+# Generate PDF report function
+def generate_pdf_report(data, entity_type, entity_name, date_range):
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    # Title and meta information
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(100, height - 100, f"{entity_type} Report: {entity_name}")
+    c.setFont("Helvetica", 12)
+    c.drawString(
+        100,
+        height - 120,
+        f"Date Range: {date_range[0].strftime('%Y-%m-%d')} to {date_range[1].strftime('%Y-%m-%d')}",
+    )
+    c.drawString(
+        100,
+        height - 140,
+        f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+    )
+
+    # Table Headers
+    c.setFont("Helvetica-Bold", 10)
+    y_position = height - 180
+    for header in ["Date", "Description", "Details"]:
+        c.drawString(100, y_position, header)
+        y_position -= 15
+
+    # Table Content
+    c.setFont("Helvetica", 10)
+    y_position -= 10
+    for entry in data:
+        if y_position < 100:  # Create a new page if there is not enough space
+            c.showPage()
+            y_position = height - 100
+        c.drawString(100, y_position, entry["date"].strftime("%Y-%m-%d"))
+        c.drawString(200, y_position, entry["description"])
+        c.drawString(300, y_position, entry["details"])
+        y_position -= 15
+
+    c.showPage()
+    c.save()
+
+    buffer.seek(0)
+    return buffer
+
+
+# Streamlit app layout
 st.title("Report Generation")
 
-# Report Criteria
-st.write("## Report Criteria")
-date_range = st.date_input("Select Date Range", [date.today(), date.today()])
-entity_type = st.selectbox("Choose Report Type", ["Resident", "Staff"])
+st.write("### Report Criteria")
+date_range = st.date_input(
+    "Date Range", value=(datetime.now().date(), datetime.now().date())
+)
+entity_type = st.selectbox("Select Type", ["Resident", "Staff"])
 
-# Fetch entity options from database
-with engine.connect() as conn:
-    if entity_type == "Resident":
-        query = text("SELECT resident_id, resident_name FROM resident")
-        result = conn.execute(query)
-        entity_options = {row[1]: row[0] for row in result}  # Access fields by index
-    else:
-        query = text("SELECT staff_id, staff_name FROM staff")
-        result = conn.execute(query)
-        entity_options = {row[1]: row[0] for row in result}  # Access fields by index
-
-selected_entity = st.selectbox(f"Select {entity_type}", list(entity_options.keys()))
-
-# Generate Report
-if st.button("Generate Report"):
-    start_date, end_date = date_range
-    entity_id = entity_options[selected_entity]
-
-    # Fetch data for the report
-    with engine.connect() as conn:
-        if entity_type == "Resident":
-            data_query = text("""
-                SELECT * FROM activities 
-                WHERE resident_id = :entity_id AND date BETWEEN :start_date AND :end_date
-            """)
-        else:
-            data_query = text("""
-                SELECT * FROM schedule
-                WHERE staff_id = :entity_id AND date BETWEEN :start_date AND :end_date
-            """)
-
-        data_result = conn.execute(
-            data_query,
-            {"entity_id": entity_id, "start_date": start_date, "end_date": end_date},
-        ).fetchall()
-
-    # Create PDF
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", "B", 16)
-    pdf.cell(0, 10, f"{entity_type} Report", 0, 1, "C")
-    pdf.set_font("Arial", "", 12)
-    pdf.cell(0, 10, f"Name: {selected_entity}", 0, 1)
-    pdf.cell(0, 10, f"Date Range: {start_date} to {end_date}", 0, 1)
-    pdf.ln(10)
-
-    # Report Content
-    pdf.set_font("Arial", "B", 14)
-    pdf.cell(0, 10, "Activity Summary", 0, 1)
-    pdf.set_font("Arial", "", 12)
-    if data_result:
-        for row in data_result:
-            pdf.cell(
-                0, 10, f"- {row[1]}: {row[2]}", 0, 1
-            )  # Assuming date and activity fields are at index 1 and 2
-    else:
-        pdf.cell(0, 10, "No activities recorded in this date range.", 0, 1)
-
-    # Save PDF to a file
-    pdf_filename = (
-        f"{entity_type}_Report_{selected_entity}_{start_date}_to_{end_date}.pdf"
+# Fetch and display relevant selection options based on entity type
+residents, staff = get_residents_staff()
+if entity_type == "Resident":
+    selected_entity = st.selectbox(
+        "Select Resident", residents, format_func=lambda x: x[1]
     )
-    pdf.output(pdf_filename)
+else:
+    selected_entity = st.selectbox("Select Staff", staff, format_func=lambda x: x[1])
 
-    # Download link
-    with open(pdf_filename, "rb") as f:
-        st.download_button(
-            label="Download Report",
-            data=f,
-            file_name=pdf_filename,
-            mime="application/pdf",
-        )
+if st.button("Generate Report"):
+    conn = connect_to_db()
+    cur = conn.cursor()
+
+    # Query based on entity type
+    if entity_type == "Resident":
+        query = """
+            SELECT event_date AS date, event_type AS description, description AS details
+            FROM Schedule
+            WHERE resident_id = %s AND event_date BETWEEN %s AND %s
+            ORDER BY event_date;
+        """
+    else:
+        query = """
+            SELECT event_date AS date, event_type AS description, description AS details
+            FROM Schedule
+            WHERE staff_id = %s AND event_date BETWEEN %s AND %s
+            ORDER BY event_date;
+        """
+
+    # Execute query and fetch data
+    cur.execute(query, (selected_entity[0], date_range[0], date_range[1]))
+    results = cur.fetchall()
+    conn.close()
+
+    # Format the fetched data into a list of dictionaries for PDF generation
+    report_data = [
+        {"date": row[0], "description": row[1], "details": row[2]} for row in results
+    ]
+
+    # Generate the PDF
+    pdf_buffer = generate_pdf_report(
+        report_data, entity_type, selected_entity[1], date_range
+    )
+
+    # Streamlit download button for the PDF
+    st.download_button(
+        label="Download Report",
+        data=pdf_buffer,
+        file_name=f"{entity_type}_Report_{selected_entity[1]}_{datetime.now().strftime('%Y%m%d')}.pdf",
+        mime="application/pdf",
+    )
