@@ -7,9 +7,15 @@ from sqlalchemy import create_engine, text
 DATABASE_URL = "postgresql://postgres:12345@localhost:5432/elderlymanagement"
 engine = create_engine(DATABASE_URL)
 
-# Dashboard Title
-st.title("Admin Dashboard")
-st.subheader("Overview")
+# Check if user is logged in
+if "user_name" in st.session_state:
+    user_name = st.session_state["user_name"]
+    st.title(f"Welcome, {user_name}!")
+else:
+    st.error("You are not logged in. Please log in to access the dashboard.")
+    st.stop()
+
+st.subheader("Dashboard Overview")
 
 
 # Retrieve Data from Database
@@ -63,51 +69,3 @@ fig_role = px.bar(
     title="Staff Role Distribution",
 )
 st.plotly_chart(fig_role)
-
-# Medication Frequency Distribution Bar Chart
-with engine.connect() as conn:
-    medication_df = pd.read_sql("SELECT frequency FROM Medication", conn)
-frequency_counts = medication_df["frequency"].value_counts()
-fig_frequency = px.bar(
-    frequency_counts,
-    x=frequency_counts.index,
-    y=frequency_counts.values,
-    title="Medication Frequency Distribution",
-)
-st.plotly_chart(fig_frequency)
-
-# Average Medications per Resident Bar Chart
-with engine.connect() as conn:
-    med_per_resident_df = pd.read_sql(
-        text("""
-        SELECT resident_id, COUNT(*) AS med_count
-        FROM Medication
-        GROUP BY resident_id
-    """),
-        conn,
-    )
-fig_med_per_resident = px.bar(
-    med_per_resident_df,
-    x="resident_id",
-    y="med_count",
-    title="Average Medications per Resident",
-)
-st.plotly_chart(fig_med_per_resident)
-
-# Top Prescribers in the System
-with engine.connect() as conn:
-    prescriber_df = pd.read_sql(
-        text("""
-        SELECT Staff.staff_name, COUNT(Medication.medication_id) AS prescriptions
-        FROM Medication
-        JOIN Staff ON Medication.prescribed_by = Staff.staff_id
-        GROUP BY Staff.staff_name
-        ORDER BY prescriptions DESC
-        LIMIT 5
-    """),
-        conn,
-    )
-fig_top_prescribers = px.bar(
-    prescriber_df, x="staff_name", y="prescriptions", title="Top 5 Prescribers"
-)
-st.plotly_chart(fig_top_prescribers)

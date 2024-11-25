@@ -1,9 +1,17 @@
 import streamlit as st
+from datetime import date
 from management import UserManagement
 
 user_management = UserManagement(table_name="Admin")
 
 st.title(f"{user_management.table_name.capitalize()} Management")
+
+# Check if user is logged in
+if "user_name" in st.session_state:
+    user_name = st.session_state["user_name"]
+else:
+    st.error("You are not logged in. Please log in to access the dashboard.")
+    st.stop()
 
 # Display the table
 user_management.show_table()

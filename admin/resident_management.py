@@ -1,12 +1,17 @@
 import streamlit as st
+from datetime import date
 from management import UserManagement
 
+# Initialize UserManagement for the Resident table
 user_management = UserManagement(table_name="Resident")
 
-st.title(f"{user_management.table_name.capitalize()} Management")
+st.title("Resident Management")
 
-# Display the table
+# Display the resident table
 user_management.show_table()
+
+# Fetch residents for dropdown selections
+residents = user_management.fetch_options("Resident", "resident_id", "name")
 
 # Select operation
 option = st.selectbox(
@@ -15,30 +20,68 @@ option = st.selectbox(
 )
 
 if option == "Create":
-    # Gather inputs based on table fields
-    inputs = {
-        field: st.text_input(
-            f"Enter {field.replace('_', ' ').capitalize()}:",
-            type="password" if "password" in field else "default",
-        )
-        for field in user_management.fields["fields"]
-    }
-    if st.button("Add User"):
-        user_management.create_record(**inputs)
+    st.write("### Add New Resident")
+
+    # Input fields for resident creation
+    name = st.text_input("Resident Name:")
+    date_of_birth = st.date_input("Date of Birth:", value=date(1970, 1, 1))
+    gender = st.selectbox("Gender:", options=["Male", "Female"])
+    contact_number = st.text_input("Contact Number:")
+    address = st.text_area("Address:")
+    email = st.text_input("Email:")
+    password = st.text_input("Password:", type="password")
+
+    if st.button("Add Resident"):
+        try:
+            # Create the resident record
+            user_management.create_record(
+                resident_name=name,
+                date_of_birth=date_of_birth,
+                gender=gender,
+                contact_number=contact_number,
+                address=address,
+                email=email,
+                password=password,
+            )
+        except Exception as e:
+            st.error(f"There is an error: {e}")
 
 elif option == "Update":
-    user_id = st.number_input("Enter User ID to Update:", min_value=1, step=1)
-    inputs = {
-        field: st.text_input(
-            f"New {field.replace('_', ' ').capitalize()}:",
-            type="password" if "password" in field else "default",
+    st.write("### Update Resident")
+
+    # Select a resident by name
+    resident_name = st.selectbox("Select Resident:", options=list(residents.keys()))
+
+    # Fetch the selected resident's details
+    selected_resident_id = residents[resident_name]
+    st.write(f"Selected Resident ID: {selected_resident_id}")
+
+    # Input fields for updatable data
+    contact_number = st.text_input("Contact Number:")
+    address = st.text_area("Address:")
+    email = st.text_input("Email:")
+    password = st.text_input("Password:", type="password")
+
+    if st.button("Update Resident"):
+        # Update the resident record
+        user_management.update_record(
+            selected_resident_id,
+            contact_number=contact_number,
+            address=address,
+            email=email,
+            password=password,
         )
-        for field in user_management.fields["fields"]
-    }
-    if st.button("Update User"):
-        user_management.update_record(user_id, **inputs)
 
 elif option == "Delete":
-    user_id = st.number_input("Enter User ID to Delete:", min_value=1, step=1)
-    if st.button("Delete User"):
-        user_management.delete_record(user_id)
+    st.write("### Delete Resident")
+
+    # Select a resident by name for deletion
+    resident_name = st.selectbox(
+        "Select Resident to Delete:", options=list(residents.keys())
+    )
+    selected_resident_id = residents[resident_name]
+
+    with st.expander("Confirm Deletion"):
+        st.write(f"Are you sure you want to delete '{resident_name}'?")
+        if st.button("Delete User"):
+            user_management.delete_record(selected_resident_id)

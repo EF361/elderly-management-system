@@ -116,3 +116,9 @@ class UserManagement:
             )
             conn.commit()
         st.success("Record deleted successfully!")
+
+    def fetch_options(self, table_name, id_field, name_field):
+        """Fetch ID and Name pairs for dropdown selections."""
+        query = f"SELECT {id_field}, {name_field} FROM {table_name}"
+        result = self.conn.query(query, ttl=0)
+        return {row[name_field]: row[id_field] for _, row in result.iterrows()}
