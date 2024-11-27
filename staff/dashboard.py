@@ -15,8 +15,15 @@ def fetch_data(query):
         return result.fetchall()
 
 
+# Check if user is logged in
+if "user_name" in st.session_state:
+    user_name = st.session_state["user_name"]
+    st.title(f"{user_name}'s Dashboard")
+else:
+    st.error("You are not logged in. Please log in to access the dashboard.")
+    st.stop()
+
 # Dashboard title
-st.title("Staff Dashboard")
 st.subheader("Daily Overview and Insights")
 
 # Summary Cards
@@ -45,7 +52,7 @@ st.progress(int(progress))
 st.caption(f"Task Completion: {int(progress)}%")
 
 # Upcoming Shifts Section
-st.subheader("Upcoming Shifts")
+st.subheader("Shifts")
 shift_data = fetch_data(
     f"""
     SELECT s.start_time, s.end_time, r.name AS resident_name, s.event_type
@@ -62,32 +69,6 @@ if shift_data:
     st.dataframe(shift_df, use_container_width=True)
 else:
     st.info("No shifts scheduled for today.")
-
-# Resident Interaction Overview
-st.subheader("Resident Interaction Metrics")
-gender_interaction = fetch_data(
-    """
-    SELECT r.gender, COUNT(*) 
-    FROM Schedule s 
-    JOIN Resident r ON s.resident_id = r.resident_id 
-    WHERE s.event_date = CURRENT_DATE 
-    GROUP BY r.gender
-    """
-)
-if gender_interaction:
-    gender_interaction_df = pd.DataFrame(
-        gender_interaction, columns=["Gender", "Count"]
-    )
-    gender_chart = px.pie(
-        gender_interaction_df,
-        values="Count",
-        names="Gender",
-        title="Interactions by Gender",
-    )
-    st.plotly_chart(gender_chart)
-else:
-    st.info("No interaction data available for today.")
-
 
 # Resident Age Overview
 st.subheader("Resident Age Overview")

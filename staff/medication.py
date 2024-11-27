@@ -5,8 +5,13 @@ from management import UserManagement
 # Initialize UserManagement for the Medical_Record table
 medical_record_management = UserManagement(table_name="Medical_Record")
 
-# Page title
-st.title("Medical Record Management")
+# Check if user is logged in and display title
+if "user_name" in st.session_state:
+    user_name = st.session_state["user_name"]
+    st.title("Medical Record Management")
+else:
+    st.error("You are not logged in. Please log in to access the dashboard.")
+    st.stop()
 
 # Display the medical records table
 medical_record_management.show_table()
@@ -36,7 +41,7 @@ if option == "Create":
     medicine_name = st.selectbox("Select Medicine:", options=list(medicines.keys()))
     selected_medicine_id = medicines[medicine_name]
 
-    doctor_name = st.selectbox("Select Doctor (Staff):", options=list(staff.keys()))
+    doctor_name = st.session_state["user_name"]
     selected_doctor_id = staff[doctor_name]
 
     record_date = st.date_input("Record Date:", value=date.today())
@@ -76,7 +81,7 @@ elif option == "Update":
         medicine_name = st.selectbox("Select Medicine:", options=list(medicines.keys()))
         selected_medicine_id = medicines[medicine_name]
 
-        doctor_name = st.selectbox("Select Doctor (Staff):", options=list(staff.keys()))
+        doctor_name = st.session_state["user_name"]
         selected_doctor_id = staff[doctor_name]
 
         record_date = st.date_input("Record Date:", value=date.today())
