@@ -1,12 +1,16 @@
 import streamlit as st
-from management import UserManagement
+from management import Management
+from datetime import date
 
-user_management = UserManagement(table_name="Staff")
+user_management = Management(table_name="Staff")
 
 st.title(f"{user_management.table_name.capitalize()} Management")
 
 # Display the table
 user_management.show_table()
+
+# Fetch existing staff options
+staff_options = user_management.fetch_options("Staff", "staff_id", "name")
 
 # Select operation
 option = st.selectbox(
@@ -15,30 +19,60 @@ option = st.selectbox(
 )
 
 if option == "Create":
-    # Gather inputs based on table fields
-    inputs = {
-        field: st.text_input(
-            f"Enter {field.replace('_', ' ').capitalize()}:",
-            type="password" if "password" in field else "default",
+    # Gather inputs for creating a new staff member
+    name = st.text_input("Enter Name:")
+    role = st.selectbox(
+        "Select Role:", options=["Doctor", "Nurse", "Caregiver", "Other"]
+    )
+    if role == "Other":
+        role = st.text_input(label="Enter Role: ", placeholder="Exp. Janitor")
+
+    contact_number = st.text_input("Enter Contact Number:")
+    email = st.text_input("Enter Email:")
+    password = st.text_input("Enter Password:", type="password")
+    hire_date = st.date_input("Select Hire Date:", value=date.today())
+
+    if st.button("Add Staff"):
+        user_management.create_record(
+            name=name,
+            role=role,
+            contact_number=contact_number,
+            email=email,
+            password=password,
+            hire_date=hire_date,
         )
-        for field in user_management.fields["fields"]
-    }
-    if st.button("Add User"):
-        user_management.create_record(**inputs)
 
 elif option == "Update":
-    user_id = st.number_input("Enter User ID to Update:", min_value=1, step=1)
-    inputs = {
-        field: st.text_input(
-            f"New {field.replace('_', ' ').capitalize()}:",
-            type="password" if "password" in field else "default",
+    # Select staff by name for updating
+    selected_name = st.selectbox(
+        "Select Staff to Update:", options=list(staff_options.keys())
+    )
+    staff_id = staff_options[selected_name]
+
+    # Gather inputs for updatable fields
+    contact_number = st.text_input("New Contact Number:")
+    email = st.text_input("New Email:")
+    password = st.text_input("New Password:", type="password")
+
+    if st.button("Update Staff"):
+        user_management.update_record(
+            staff_id,
+            contact_number=contact_number,
+            email=email,
+            password=password,
         )
-        for field in user_management.fields["fields"]
-    }
-    if st.button("Update User"):
-        user_management.update_record(user_id, **inputs)
 
 elif option == "Delete":
-    user_id = st.number_input("Enter User ID to Delete:", min_value=1, step=1)
-    if st.button("Delete User"):
-        user_management.delete_record(user_id)
+    st.write("### Delete Staff")
+
+    # Select staff by name for deletion
+    selected_name = st.selectbox(
+        "Select Staff to Delete:", options=list(staff_options.keys())
+    )
+    staff_id = staff_options[selected_name]
+
+    # Confirmation expander
+    with st.expander("Confirm Deletion"):
+        st.write(f"Are you sure you want to delete '{selected_name}'?")
+        if st.button("Delete Staff"):
+            user_management.delete_record(staff_id)
