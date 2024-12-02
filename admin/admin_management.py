@@ -1,9 +1,9 @@
 import streamlit as st
 from management import Management
 
-user_management = Management(table_name="Admin")
+admin_management = Management(table_name="Admin")
 
-st.title(f"{user_management.table_name.capitalize()} Management")
+st.title(f"{admin_management.table_name.capitalize()} Management")
 
 # Check if user is logged in
 if "user_name" in st.session_state:
@@ -13,10 +13,10 @@ else:
     st.stop()
 
 # Display the table
-user_management.show_table()
+admin_management.show_table()
 
 # Fetch existing admin options
-admin_options = user_management.fetch_options("Admin", "admin_id", "name")
+admin_options = admin_management.fetch_options("Admin", "admin_id", "name")
 
 # Select operation
 option = st.selectbox(
@@ -33,9 +33,8 @@ if option == "Create":
         contact_number = st.text_input("Enter Contact Number:")
 
         if st.button("Add Admin"):
-            # Make sure column names match database schema
-            user_management.create_record(
-                name=name,  # Matches `admin_name` in the schema
+            admin_management.create_record(
+                name=name,
                 email=email,
                 password=password,
                 contact_number=contact_number,
@@ -43,7 +42,7 @@ if option == "Create":
 
 
 elif option == "Update":
-    with st.expander(" Update Admin"):
+    with st.expander("Update Admin"):
         # Select admin by name for updating
         selected_name = st.selectbox(
             "Select Admin to Update:", options=list(admin_options.keys())
@@ -51,12 +50,22 @@ elif option == "Update":
         admin_id = admin_options[selected_name]
 
         # Gather inputs for updatable fields
-        email = st.text_input("New Email:")
-        password = st.text_input("New Password:", type="password")
-        contact_number = st.text_input("New Contact Number:")
+        email = st.text_input(
+            label="New Email:",
+            placeholder="Optional",
+        )
+        password = st.text_input(
+            label="New Password:",
+            type="password",
+            placeholder="Optional",
+        )
+        contact_number = st.text_input(
+            label="New Contact Number:",
+            placeholder="Optional",
+        )
 
         if st.button("Update Admin"):
-            user_management.update_record(
+            admin_management.update_record(
                 admin_id,
                 email=email,
                 password=password,
@@ -64,8 +73,6 @@ elif option == "Update":
             )
 
 elif option == "Delete":
-    st.write("### Delete Admin")
-
     # Select admin by name for deletion
     selected_name = st.selectbox(
         "Select Admin to Delete:", options=list(admin_options.keys())
@@ -76,4 +83,4 @@ elif option == "Delete":
     with st.expander("Confirm Deletion"):
         st.write(f"Are you sure you want to delete '{selected_name}'?")
         if st.button("Delete Admin"):
-            user_management.delete_record(admin_id)
+            admin_management.delete_record(admin_id)
