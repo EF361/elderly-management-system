@@ -126,3 +126,129 @@ class Management:
         query = f"SELECT {id_field}, {name_field} FROM {table_name}"
         result = self.conn.query(query, ttl=0)
         return {row[name_field]: row[id_field] for _, row in result.iterrows()}
+
+    def fetch_full_residents_with_contacts(self):
+        query = """
+        SELECT r.resident_id, r.name, r.date_of_birth, r.gender, r.contact_number, 
+            r.address, r.email, rec.contact_name, rec.relationship, rec.contact_number AS emergency_contact_number
+        FROM Resident r
+        LEFT JOIN Resident_Emergency_Contacts rec ON r.resident_id = rec.resident_id;
+        """
+        try:
+            # Get the connection object
+            conn = st.connection("postgresql", type="sql")
+
+            # Execute the query using the `query` method
+            result = conn.query(query)
+
+            # Convert result to a list of dictionaries if needed
+            return [dict(row) for row in result]
+        except Exception as e:
+            st.error(f"Error fetching residents with contacts: {e}")
+            return []
+
+    def show_full_table(self, data):
+        if not data:
+            st.warning("No resident data available.")
+            return
+
+        # Display resident data with emergency contact details
+        st.write("### Residents and Their Emergency Contacts")
+        for entry in data:
+            st.markdown(f"**Resident ID:** {entry['resident_id']}")
+            st.markdown(f"**Name:** {entry['name']}")
+            st.markdown(f"**Date of Birth:** {entry['date_of_birth']}")
+            st.markdown(f"**Gender:** {entry['gender']}")
+            st.markdown(f"**Contact Number:** {entry['contact_number']}")
+            st.markdown(f"**Address:** {entry['address']}")
+            st.markdown(f"**Email:** {entry['email']}")
+            st.markdown(f"**Emergency Contact Name:** {entry['contact_name']}")
+            st.markdown(f"**Emergency Relationship:** {entry['relationship']}")
+            st.markdown(f"**Emergency Contact Number:** {entry['contact_number']}")
+            st.divider()
+
+        def get_table_fields(self):
+            table_fields = {
+                "resident": {
+                    "primary_key": "resident_id",
+                    "fields": [
+                        "name",
+                        "date_of_birth",
+                        "gender",
+                        "contact_number",
+                        "address",
+                        "email",
+                        "password",
+                    ],
+                },
+                # Define for other tables if necessary
+            }
+            return table_fields.get(self.table_name.lower(), {})
+
+    def create_resident_with_contacts(self, resident_data, emergency_contacts):
+        """Insert a resident and their emergency contacts."""
+        resident_fields = ", ".join(self.fields["fields"])
+        resident_placeholders = ", ".join(
+            [f":{field}" for field in self.fields["fields"]]
+        )
+
+        try:
+            # Insert resident record
+            query_resident = f"""
+            INSERT INTO Resident ({resident_fields}) 
+            VALUES ({resident_placeholders}) 
+            RETURNING resident_id;
+            """
+            with self.conn.connect() as conn:
+                result = conn.execute(text(query_resident), resident_data)
+                resident_id = result.fetchone()[0]
+
+                # Insert emergency contacts
+                for contact in emergency_contacts:
+                    contact_query = """
+                    INSERT INTO Resident_Emergency_Contacts 
+                    (resident_id, contact_name, relationship, contact_number) 
+                    VALUES (:resident_id, :contact_name, :relationship, :contact_number);
+                    """
+                    conn.execute(
+                        text(contact_query),
+                        {
+                            "resident_id": resident_id,
+                            "contact_name": contact["contact_name"],
+                            "relationship": contact["relationship"],
+                            "contact_number": contact["contact_number"],
+                        },
+                    )
+                conn.commit()
+
+            st.success("Resident and emergency contacts added successfully!")
+        except Exception as e:
+            st.error(f"Error creating resident with contacts: {e}")
+
+    def fetch_full_residents_with_contacts(self):
+        """Fetch residents and their emergency contacts."""
+        query = """
+        SELECT r.resident_id, r.name, r.date_of_birth, r.gender, r.contact_number, 
+               r.address, r.email, rec.contact_name, rec.relationship, rec.contact_number AS emergency_contact_number
+        FROM Resident r
+        LEFT JOIN Resident_Emergency_Contacts rec ON r.resident_id = rec.resident_id;
+        """
+        try:
+            result = self.conn.query(query, ttl=0)
+            return result.to_dict("records")  # Convert to a list of dictionaries
+        except Exception as e:
+            st.error(f"Error fetching residents with contacts: {e}")
+            return []
+
+    def delete_resident_with_contacts(self, resident_id):
+        """Delete a resident and their emergency contacts."""
+        try:
+            with self.conn.connect() as conn:
+                conn.execute(
+                    text("DELETE FROM Resident WHERE resident_id = :resident_id"),
+                    {"resident_id": resident_id},
+                )
+                conn.commit()
+            st.success("Resident and emergency contacts deleted successfully!")
+        except Exception as e:
+            st.error(f"Error deleting resident: {e}")

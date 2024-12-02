@@ -105,7 +105,7 @@ if operation == "Create":
         end_time = st.time_input("End Time", value=datetime.now().time())
         description = st.text_area(
             "Description",
-            placeholder="Asthma follow-up",
+            placeholder="Exp. Asthma follow-up",
         )
 
         if st.button("Add Schedule"):
