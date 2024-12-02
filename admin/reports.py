@@ -1,11 +1,10 @@
 import streamlit as st
 from reportlab.lib.pagesizes import A4
-from reportlab.lib import colors  # noqa: F401
-from reportlab.lib.units import inch  # noqa: F401
 from reportlab.pdfgen import canvas
 from datetime import datetime
 import io
 import psycopg2
+from reportlab.platypus import Image
 
 
 # Function to connect to the PostgreSQL database
@@ -39,43 +38,56 @@ def generate_pdf_report(data, entity_type, entity_name, date_range):
     c = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
 
+    # Add logo
+    logo_path = "images/logo.png"
+    c.drawImage(logo_path, width / 2 - 50, height - 100, width=100, height=100)
+
     # Title and meta information
     c.setFont("Helvetica-Bold", 16)
-    c.drawString(100, height - 100, f"{entity_type} Report: {entity_name}")
+    c.drawCentredString(width / 2, height - 130, f"{entity_type} Report")
     c.setFont("Helvetica", 12)
+    c.drawString(50, height - 160, f"Name: {entity_name}")
     c.drawString(
-        100,
-        height - 120,
+        50,
+        height - 180,
         f"Date Range: {date_range[0].strftime('%Y-%m-%d')} to {date_range[1].strftime('%Y-%m-%d')}",
     )
     c.drawString(
-        100,
-        height - 140,
+        50,
+        height - 200,
         f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
     )
 
     # Table Headers
     c.setFont("Helvetica-Bold", 10)
-    y_position = height - 180
-    for header in ["Date", "Description", "Details"]:
-        c.drawString(100, y_position, header)
-        y_position -= 15
+    y_position = height - 240
+    headers = ["Event Date", "Start Time", "End Time", "Event Type", "Description"]
+    col_positions = [50, 120, 190, 260, 330]
+    for i, header in enumerate(headers):
+        c.drawString(col_positions[i], y_position, header)
+    y_position -= 15
 
     # Table Content
     c.setFont("Helvetica", 10)
-    y_position -= 10
     for entry in data:
-        if y_position < 100:  # Create a new page if there is not enough space
+        if y_position < 50:  # Create a new page if there is not enough space
             c.showPage()
             y_position = height - 100
-        c.drawString(100, y_position, entry["date"].strftime("%Y-%m-%d"))
-        c.drawString(200, y_position, entry["description"])
-        c.drawString(300, y_position, entry["details"])
+            for i, header in enumerate(headers):
+                c.drawString(col_positions[i], y_position, header)
+            y_position -= 15
+        c.drawString(
+            col_positions[0], y_position, entry["event_date"].strftime("%Y-%m-%d")
+        )
+        c.drawString(
+            col_positions[1], y_position, entry["start_time"].strftime("%H:%M")
+        )
+        c.drawString(col_positions[2], y_position, entry["end_time"].strftime("%H:%M"))
+        c.drawString(col_positions[3], y_position, entry["event_type"])
+        c.drawString(col_positions[4], y_position, entry["description"])
         y_position -= 15
 
-    c.showPage()
     c.save()
-
     buffer.seek(0)
     return buffer
 
@@ -105,14 +117,14 @@ if st.button("Generate Report"):
     # Query based on entity type
     if entity_type == "Resident":
         query = """
-            SELECT event_date AS date, event_type AS description, description AS details
+            SELECT event_date, start_time, end_time, event_type, description
             FROM Schedule
             WHERE resident_id = %s AND event_date BETWEEN %s AND %s
             ORDER BY event_date;
         """
     else:
         query = """
-            SELECT event_date AS date, event_type AS description, description AS details
+            SELECT event_date, start_time, end_time, event_type, description
             FROM Schedule
             WHERE staff_id = %s AND event_date BETWEEN %s AND %s
             ORDER BY event_date;
@@ -125,7 +137,14 @@ if st.button("Generate Report"):
 
     # Format the fetched data into a list of dictionaries for PDF generation
     report_data = [
-        {"date": row[0], "description": row[1], "details": row[2]} for row in results
+        {
+            "event_date": row[0],
+            "start_time": row[1],
+            "end_time": row[2],
+            "event_type": row[3],
+            "description": row[4],
+        }
+        for row in results
     ]
 
     # Generate the PDF
