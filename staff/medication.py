@@ -79,8 +79,14 @@ elif option == "Update":
             selected_record_id = medical_records[record_to_update]
 
             # Input fields for updatable data
-            diagnosis = st.text_area("Diagnosis (leave blank to keep current):")
-            treatment = st.text_area("Treatment (leave blank to keep current):")
+            diagnosis = st.text_area(
+                "Diagnosis:",
+                placeholder="Optional",
+            )
+            treatment = st.text_area(
+                "Treatment:",
+                placeholder="Optional",
+            )
             medicine_name = st.selectbox(
                 "Select Medicine:", options=list(medicines.keys())
             )
