@@ -1,9 +1,9 @@
 import streamlit as st
 from datetime import date
-from management import UserManagement
+from management import Management
 
 # Initialize UserManagement for the Medical_Record table
-medical_record_management = UserManagement(table_name="Medical_Record")
+medical_record_management = Management(table_name="Medical_Record")
 
 # Check if user is logged in and display title
 if "user_name" in st.session_state:
