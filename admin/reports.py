@@ -24,10 +24,10 @@ def get_residents_staff():
     conn = connect_to_db()
     cur = conn.cursor()
     # Fetch residents
-    cur.execute("SELECT resident_id, resident_name FROM Resident")
+    cur.execute("SELECT resident_id, name FROM Resident")
     residents = cur.fetchall()
     # Fetch staff
-    cur.execute("SELECT staff_id, staff_name FROM Staff")
+    cur.execute("SELECT staff_id, name FROM Staff")
     staff = cur.fetchall()
     conn.close()
     return residents, staff
