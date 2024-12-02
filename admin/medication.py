@@ -1,10 +1,10 @@
 import streamlit as st
-from management import UserManagement
+from management import Management
 from datetime import date
 
 
 # Define MedicineManagement class
-class MedicineManagement(UserManagement):
+class MedicineManagement(Management):
     def __init__(self):
         super().__init__("Medicine")
         self.fields = {
@@ -57,7 +57,7 @@ if option == "Create":
 elif option == "Update":
     st.write("### Update Medicine")
 
-    # Select a resident by name
+    # Select a medicine by name
     medicine_name = st.selectbox("Select Medicine:", options=list(medicines.keys()))
 
     # Fetch the selected medicine's details
@@ -80,13 +80,13 @@ elif option == "Update":
 elif option == "Delete":
     st.write("### Delete Medicine")
 
-    # Select a resident by name for deletion
-    resident_name = st.selectbox(
+    # Select a medicine by name for deletion
+    medicine_name = st.selectbox(
         "Select Medicine to Delete:", options=list(medicines.keys())
     )
-    selected_medicine_id = medicines[resident_name]
+    selected_medicine_id = medicines[medicine_name]
 
     with st.expander("Confirm Deletion"):
-        st.write(f"Are you sure you want to delete '{resident_name}'?")
-        if st.button("Delete User"):
+        st.write(f"Are you sure you want to delete '{medicine_name}'?")
+        if st.button("Delete Medicine"):
             med_manager.delete_record(selected_medicine_id)
