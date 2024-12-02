@@ -1,22 +1,21 @@
 import streamlit as st
 from management import Management
 
-admin_management = Management(table_name="Admin")
+admin_manager = Management(table_name="Admin")
 
-st.title(f"{admin_management.table_name.capitalize()} Management")
-
-# Check if user is logged in
+# Check if user is logged in, if yes, display title
 if "user_name" in st.session_state:
     user_name = st.session_state["user_name"]
+    st.title(f"{admin_manager.table_name.capitalize()} Management")
 else:
     st.error("You are not logged in. Please log in to access the dashboard.")
     st.stop()
 
 # Display the table
-admin_management.show_table()
+admin_manager.show_table()
 
 # Fetch existing admin options
-admin_options = admin_management.fetch_options("Admin", "admin_id", "name")
+admin_options = admin_manager.fetch_options("Admin", "admin_id", "name")
 
 # Select operation
 option = st.selectbox(
@@ -27,13 +26,26 @@ option = st.selectbox(
 if option == "Create":
     with st.expander("Create Admin"):
         # Gather inputs for creating a new admin
-        name = st.text_input("Enter Name:")
-        email = st.text_input("Enter Email:")
-        password = st.text_input("Enter Password:", type="password")
-        contact_number = st.text_input("Enter Contact Number:")
+        name = st.text_input(
+            "Enter Name:",
+            placeholder="Alexander",
+        )
+        email = st.text_input(
+            "Enter Email:",
+            placeholder="alex@admin.com",
+        )
+        password = st.text_input(
+            "Enter Password:",
+            type="password",
+            placeholder="admin123",
+        )
+        contact_number = st.text_input(
+            "Enter Contact Number:",
+            placeholder="011-1234567",
+        )
 
         if st.button("Add Admin"):
-            admin_management.create_record(
+            admin_manager.create_record(
                 name=name,
                 email=email,
                 password=password,
@@ -65,7 +77,7 @@ elif option == "Update":
         )
 
         if st.button("Update Admin"):
-            admin_management.update_record(
+            admin_manager.update_record(
                 admin_id,
                 email=email,
                 password=password,
@@ -83,4 +95,4 @@ elif option == "Delete":
     with st.expander("Confirm Deletion"):
         st.write(f"Are you sure you want to delete '{selected_name}'?")
         if st.button("Delete Admin"):
-            admin_management.delete_record(admin_id)
+            admin_manager.delete_record(admin_id)

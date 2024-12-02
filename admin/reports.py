@@ -1,7 +1,7 @@
 import streamlit as st
 from reportlab.lib.pagesizes import A4
-from reportlab.lib import colors
-from reportlab.lib.units import inch
+from reportlab.lib import colors  # noqa: F401
+from reportlab.lib.units import inch  # noqa: F401
 from reportlab.pdfgen import canvas
 from datetime import datetime
 import io
