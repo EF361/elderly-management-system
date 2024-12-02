@@ -7,15 +7,13 @@ from sqlalchemy import create_engine, text
 DATABASE_URL = "postgresql://postgres:12345@localhost:5432/elderlymanagement"
 engine = create_engine(DATABASE_URL)
 
-# Check if user is logged in
+# Check if user is logged in, if yes, display title
 if "user_name" in st.session_state:
     user_name = st.session_state["user_name"]
-    st.title(f"Welcome, {user_name}!")
+    st.title(f"{user_name}'s Dashboard")
 else:
     st.error("You are not logged in. Please log in to access the dashboard.")
     st.stop()
-
-st.subheader("Dashboard Overview")
 
 
 # Retrieve Data from Database
