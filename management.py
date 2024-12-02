@@ -1,9 +1,8 @@
 import streamlit as st
 from sqlalchemy import create_engine, text
 
-# class file
 
-
+# Management class
 class Management:
     def __init__(self, table_name):
         self.table_name = table_name
@@ -19,7 +18,7 @@ class Management:
             "admin": {
                 "primary_key": "admin_id",
                 "fields": [
-                    "admin_name",
+                    "name",
                     "email",
                     "password",
                     "contact_number",
@@ -28,7 +27,7 @@ class Management:
             "resident": {
                 "primary_key": "resident_id",
                 "fields": [
-                    "resident_name",
+                    "name",
                     "date_of_birth",
                     "gender",
                     "contact_number",
@@ -40,7 +39,7 @@ class Management:
             "staff": {
                 "primary_key": "staff_id",
                 "fields": [
-                    "staff_name",
+                    "name",
                     "role",
                     "contact_number",
                     "email",
@@ -59,42 +58,47 @@ class Management:
 
     def create_record(self, **kwargs):
         """Insert a new record into the specified user table."""
+        missing_fields = [
+            field for field in self.fields["fields"] if field not in kwargs
+        ]
+        if missing_fields:
+            st.error(f"Missing fields: {', '.join(missing_fields)}")
+            return
+
         fields = ", ".join(self.fields["fields"])
         placeholders = ", ".join([f":{field}" for field in self.fields["fields"]])
 
-        with self.conn.connect() as conn:
-            conn.execute(
-                text(
-                    f"INSERT INTO {self.table_name} ({fields}) VALUES ({placeholders})"
-                ),
-                kwargs,
-            )
-            conn.commit()
-        st.success("Record created successfully!")
+        try:
+            with self.conn.connect() as conn:
+                conn.execute(
+                    text(
+                        f"INSERT INTO {self.table_name} ({fields}) VALUES ({placeholders})"
+                    ),
+                    kwargs,
+                )
+                conn.commit()
+            st.success("Record created successfully!")
+        except Exception as e:
+            st.error(f"Error creating record: {str(e)}")
 
     def update_record(self, user_id, **kwargs):
         """Update specific fields in a record, keeping original values if fields are empty."""
         primary_key = self.fields["primary_key"]
 
-        # Retrieve existing record
         with self.conn.connect() as conn:
             result = conn.execute(
                 text(f"SELECT * FROM {self.table_name} WHERE {primary_key} = :user_id"),
                 {"user_id": user_id},
             ).fetchone()
 
-            # Convert result to dictionary-like mapping to access by column names
             if result:
                 current_values = result._mapping  # Access the columns by name
-
-                # Use existing values if no new input is provided
                 update_data = {
                     field: kwargs.get(field) or current_values[field]
                     for field in self.fields["fields"]
                 }
                 update_set = ", ".join([f"{field} = :{field}" for field in update_data])
 
-                # Update the record
                 conn.execute(
                     text(
                         f"UPDATE {self.table_name} SET {update_set} WHERE {primary_key} = :user_id"

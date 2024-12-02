@@ -33,15 +33,17 @@ if option == "Create":
         contact_number = st.text_input("Enter Contact Number:")
 
         if st.button("Add Admin"):
+            # Make sure column names match database schema
             user_management.create_record(
-                name=name,
+                name=name,  # Matches `admin_name` in the schema
                 email=email,
                 password=password,
                 contact_number=contact_number,
             )
 
+
 elif option == "Update":
-    with st.expander("Update Admin"):
+    with st.expander(" Update Admin"):
         # Select admin by name for updating
         selected_name = st.selectbox(
             "Select Admin to Update:", options=list(admin_options.keys())
