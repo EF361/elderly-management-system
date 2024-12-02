@@ -1,17 +1,17 @@
 import streamlit as st
 from datetime import date
-from management import UserManagement
+from management import Management
 
 # Initialize UserManagement for the Resident table
-user_management = UserManagement(table_name="Resident")
+management = Management(table_name="Resident")
 
 st.title("Resident Management")
 
 # Display the resident table
-user_management.show_table()
+management.show_table()
 
 # Fetch residents for dropdown selections
-residents = user_management.fetch_options("Resident", "resident_id", "name")
+residents = management.fetch_options("Resident", "resident_id", "name")
 
 # Select operation
 option = st.selectbox(
@@ -34,7 +34,7 @@ if option == "Create":
     if st.button("Add Resident"):
         try:
             # Create the resident record
-            user_management.create_record(
+            management.create_record(
                 resident_name=name,
                 date_of_birth=date_of_birth,
                 gender=gender,
@@ -64,7 +64,7 @@ elif option == "Update":
 
     if st.button("Update Resident"):
         # Update the resident record
-        user_management.update_record(
+        management.update_record(
             selected_resident_id,
             contact_number=contact_number,
             address=address,
@@ -84,4 +84,4 @@ elif option == "Delete":
     with st.expander("Confirm Deletion"):
         st.write(f"Are you sure you want to delete '{resident_name}'?")
         if st.button("Delete User"):
-            user_management.delete_record(selected_resident_id)
+            management.delete_record(selected_resident_id)
