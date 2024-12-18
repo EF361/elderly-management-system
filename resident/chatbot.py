@@ -62,6 +62,18 @@ def detect_relevant_question(prompt):
         return "other"
 
 
+# Function to get admin contact number
+def get_admin_contact():
+    query = text("SELECT contact_number FROM Admin LIMIT 1;")
+    with engine.connect() as conn:
+        result = conn.execute(query).fetchone()
+    if result:
+        return result[0]
+    return (
+        "123-456-7890"  # Fallback contact number if no admin is found in the database
+    )
+
+
 # Check if user is logged in
 if "user_name" in st.session_state:
     user_name = st.session_state["user_name"]
@@ -72,6 +84,10 @@ if "user_name" in st.session_state:
     if not resident_id:
         st.error(
             "Could not find your details in the database. Please contact the admin."
+        )
+        admin_contact = get_admin_contact()
+        st.write(
+            f"If you have any issues, you can contact the admin at: {admin_contact}"
         )
         st.stop()
 else:
@@ -118,7 +134,8 @@ if prompt := st.chat_input("What is up?"):
         else:
             response = "You have no medication records available."
     else:
-        response = "I can't answer that. Please contact the staff or admin for more information."
+        admin_contact = get_admin_contact()
+        response = f"I can't answer that. Please contact the admin at: {admin_contact} for further assistance."
 
     # Display assistant's response
     with st.chat_message("assistant"):
