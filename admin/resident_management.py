@@ -1,5 +1,4 @@
 import streamlit as st
-from datetime import date
 from management import Management
 
 # Initialize the Resident Manager
@@ -31,9 +30,6 @@ option = st.selectbox(
     options=["Create", "Update", "Delete"],
 )
 
-# ------------------------
-# **CREATE Resident**
-# ------------------------
 if option == "Create":
     with st.expander("Create Resident"):
         # Input fields for new resident
@@ -42,7 +38,7 @@ if option == "Create":
         gender = st.selectbox("Gender:", options=["Male", "Female"])
         contact_number = st.text_input("Contact Number:")
         address = st.text_area("Address:")
-        email = st.text_input("Email:")
+        username = st.text_input("Username:")
         password = st.text_input("Password:", type="password")
 
         # Emergency Contacts
@@ -77,7 +73,7 @@ if option == "Create":
                     "gender": gender,
                     "contact_number": contact_number,
                     "address": address,
-                    "email": email,
+                    "username": username,
                     "password": password,
                 }
                 resident_manager.create_resident_with_contacts(
@@ -85,9 +81,6 @@ if option == "Create":
                 )
                 st.success("Resident added successfully.")
 
-# ------------------------
-# **UPDATE Resident**
-# ------------------------
 elif option == "Update":
     with st.expander("Update Resident"):
         # Select a resident to update
@@ -97,7 +90,7 @@ elif option == "Update":
         # Fields to update
         contact_number = st.text_input("Contact Number:", placeholder="Optional")
         address = st.text_area("Address:", placeholder="Optional")
-        email = st.text_input("Email:", placeholder="Optional")
+        username = st.text_input("Username:", placeholder="Optional")
         password = st.text_input("Password:", type="password", placeholder="Optional")
 
         # Update emergency contacts
@@ -128,7 +121,7 @@ elif option == "Update":
                     resident_id=selected_resident_id,
                     contact_number=contact_number,
                     address=address,
-                    email=email,
+                    username=username,
                     password=password,
                     emergency_contacts=emergency_contacts,
                 )
@@ -136,9 +129,6 @@ elif option == "Update":
             except Exception as e:
                 st.error(f"Error updating resident: {e}")
 
-# ------------------------
-# **DELETE Resident**
-# ------------------------
 elif option == "Delete":
     with st.expander("Delete Resident"):
         # Select a resident to delete

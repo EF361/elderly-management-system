@@ -19,7 +19,7 @@ class Management:
                 "primary_key": "admin_id",
                 "fields": [
                     "name",
-                    "email",
+                    "username",
                     "password",
                     "contact_number",
                 ],
@@ -32,7 +32,7 @@ class Management:
                     "gender",
                     "contact_number",
                     "address",
-                    "email",
+                    "username",
                     "password",
                 ],
             },
@@ -42,9 +42,20 @@ class Management:
                     "name",
                     "role",
                     "contact_number",
-                    "email",
+                    "username",
                     "password",
                     "hire_date",
+                ],
+            },
+            "medical_record": {
+                "primary_key": "record_id",
+                "fields": [
+                    "resident_id",
+                    "diagnosis",
+                    "treatment",
+                    "doctor_id",
+                    "record_date",
+                    "medicine_id",
                 ],
             },
         }
@@ -130,7 +141,7 @@ class Management:
     def fetch_full_residents_with_contacts(self):
         query = """
         SELECT r.resident_id, r.name, r.date_of_birth, r.gender, r.contact_number, 
-            r.address, r.email, rec.contact_name, rec.relationship, rec.contact_number AS emergency_contact_number
+            r.address, r.username, rec.contact_name, rec.relationship, rec.contact_number AS emergency_contact_number
         FROM Resident r
         LEFT JOIN Resident_Emergency_Contacts rec ON r.resident_id = rec.resident_id;
         """
@@ -161,7 +172,7 @@ class Management:
             st.markdown(f"**Gender:** {entry['gender']}")
             st.markdown(f"**Contact Number:** {entry['contact_number']}")
             st.markdown(f"**Address:** {entry['address']}")
-            st.markdown(f"**Email:** {entry['email']}")
+            st.markdown(f"**Username:** {entry['username']}")
             st.markdown(f"**Emergency Contact Name:** {entry['contact_name']}")
             st.markdown(f"**Emergency Relationship:** {entry['relationship']}")
             st.markdown(f"**Emergency Contact Number:** {entry['contact_number']}")
@@ -177,7 +188,7 @@ class Management:
                         "gender",
                         "contact_number",
                         "address",
-                        "email",
+                        "username",
                         "password",
                     ],
                 },
@@ -229,7 +240,7 @@ class Management:
         """Fetch residents and their emergency contacts."""
         query = """
         SELECT r.resident_id, r.name, r.date_of_birth, r.gender, r.contact_number, 
-               r.address, r.email, rec.contact_name, rec.relationship, rec.contact_number AS emergency_contact_number
+               r.address, r.username, rec.contact_name, rec.relationship, rec.contact_number AS emergency_contact_number
         FROM Resident r
         LEFT JOIN Resident_Emergency_Contacts rec ON r.resident_id = rec.resident_id;
         """

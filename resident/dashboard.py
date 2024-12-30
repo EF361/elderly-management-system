@@ -18,7 +18,7 @@ resident_info = None
 try:
     with engine.connect() as connection:
         query = text("""
-            SELECT r.name, r.date_of_birth, r.gender, r.contact_number, r.email, r.address,
+            SELECT r.name, r.date_of_birth, r.gender, r.contact_number, r.username, r.address,
                    rec.contact_name, rec.relationship, rec.contact_number AS emergency_contact
             FROM resident r
             LEFT JOIN resident_emergency_contacts rec ON r.resident_id = rec.resident_id
@@ -54,7 +54,7 @@ if resident_info:
     **Date of Birth:** {resident_info['date_of_birth']}  
     **Gender:** {resident_info['gender']}  
     **Contact Number:** {resident_info['contact_number']}  
-    **Email:** {resident_info['email']}  
+    **Username:** {resident_info['username']}  
     **Address:** {resident_info['address']}  
 
     ### Emergency Contact Information:

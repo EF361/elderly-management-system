@@ -31,22 +31,15 @@ if option == "Create":
             "Enter Name:",
             placeholder="Exp. Jasmine",
         )
-        role = st.selectbox(
-            "Select Role:", options=["Doctor", "Nurse", "Caregiver", "Other"]
-        )
-        if role == "Other":
-            role = st.text_input(
-                label="Enter Role: ",
-                placeholder="Exp. Janitor",
-            )
+        role = st.selectbox("Select Role:", options=["Doctor", "Nurse", "Caregiver"])
 
         contact_number = st.text_input(
             "Enter Contact Number:",
             placeholder="011-2345678",
         )
-        email = st.text_input(
-            "Enter Email:",
-            placeholder="edward@staff.com",
+        username = st.text_input(
+            "Enter Username:",
+            placeholder="edward",
         )
         password = st.text_input(
             "Enter Password:",
@@ -60,7 +53,7 @@ if option == "Create":
                 name=name,
                 role=role,
                 contact_number=contact_number,
-                email=email,
+                username=username,
                 password=password,
                 hire_date=hire_date,
             )
@@ -78,8 +71,8 @@ elif option == "Update":
             "New Contact Number:",
             placeholder="Optional",
         )
-        email = st.text_input(
-            "New Email:",
+        username = st.text_input(
+            "New Username:",
             placeholder="Optional",
         )
         password = st.text_input(
@@ -92,7 +85,7 @@ elif option == "Update":
             staff_manager.update_record(
                 staff_id,
                 contact_number=contact_number,
-                email=email,
+                username=username,
                 password=password,
             )
 

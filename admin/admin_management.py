@@ -30,8 +30,8 @@ if option == "Create":
             "Enter Name:",
             placeholder="Alexander",
         )
-        email = st.text_input(
-            "Enter Email:",
+        username = st.text_input(
+            "Enter Username:",
             placeholder="alex@admin.com",
         )
         password = st.text_input(
@@ -47,7 +47,7 @@ if option == "Create":
         if st.button("Add Admin"):
             admin_manager.create_record(
                 name=name,
-                email=email,
+                username=username,
                 password=password,
                 contact_number=contact_number,
             )
@@ -62,8 +62,8 @@ elif option == "Update":
         admin_id = admin_options[selected_name]
 
         # Gather inputs for updatable fields
-        email = st.text_input(
-            label="New Email:",
+        username = st.text_input(
+            label="New Username:",
             placeholder="Optional",
         )
         password = st.text_input(
@@ -79,7 +79,7 @@ elif option == "Update":
         if st.button("Update Admin"):
             admin_manager.update_record(
                 admin_id,
-                email=email,
+                username=username,
                 password=password,
                 contact_number=contact_number,
             )
