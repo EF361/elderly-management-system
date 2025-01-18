@@ -1,4 +1,5 @@
 import streamlit as st
+from datetime import datetime
 from management import Management
 
 # Initialize the Resident Manager
@@ -17,7 +18,33 @@ residents_with_contacts = resident_manager.fetch_full_residents_with_contacts()
 
 # Display resident table in a readable format
 if residents_with_contacts:
-    st.table(residents_with_contacts)
+    resident_data = [
+        {
+            "Resident ID": entry["resident_id"],
+            "Name": entry["name"],
+            "Date of Birth": entry["date_of_birth"],
+            "Gender": entry["gender"],
+            "Contact Number": entry["contact_number"],
+            "Address": entry["address"],
+            "Username": entry["username"],
+        }
+        for entry in residents_with_contacts
+    ]
+    st.write("### Residents")
+    st.dataframe(resident_data)
+
+    contact_data = [
+        {
+            "Contact ID": entry.get("contact_id", "N/A"),
+            "Resident Name": entry["name"],
+            "Emergency Contact Name": entry["contact_name"],
+            "Relationship": entry["relationship"],
+            "Contact Number": entry["emergency_contact_number"],
+        }
+        for entry in residents_with_contacts
+    ]
+    st.write("### Emergency Contacts")
+    st.dataframe(contact_data)
 else:
     st.write("No resident records available.")
 
@@ -34,38 +61,26 @@ if option == "Create":
     with st.expander("Create Resident"):
         # Input fields for new resident
         name = st.text_input("Resident Name:")
-        date_of_birth = st.date_input("Date of Birth:")
+        date_of_birth = st.date_input(
+            "Date of Birth:",
+            min_value=datetime(1930, 1, 1),
+            max_value=datetime(2000, 12, 31),
+        )
         gender = st.selectbox("Gender:", options=["Male", "Female"])
         contact_number = st.text_input("Contact Number:")
         address = st.text_area("Address:")
         username = st.text_input("Username:")
         password = st.text_input("Password:", type="password")
 
-        # Emergency Contacts
-        emergency_contacts = []
-        for i in range(2):  # Collect 2 emergency contacts
-            contact_name = st.text_input(
-                f"Emergency Contact {i + 1} Name:", key=f"ec_name_{i}"
-            )
-            relationship = st.text_input(
-                f"Relationship {i + 1}:", key=f"ec_relationship_{i}"
-            )
-            emergency_contact_number = st.text_input(
-                f"Contact Number {i + 1}:", key=f"ec_number_{i}"
-            )
-            if contact_name and emergency_contact_number:
-                emergency_contacts.append(
-                    {
-                        "contact_name": contact_name,
-                        "relationship": relationship,
-                        "contact_number": emergency_contact_number,
-                    }
-                )
+        # Emergency Contact
+        contact_name = st.text_input("Emergency Contact Name:")
+        relationship = st.text_input("Relationship:")
+        emergency_contact_number = st.text_input("Emergency Contact Number:")
 
         # Submit the data
         if st.button("Add Resident"):
-            if len(emergency_contacts) < 2:
-                st.error("At least two emergency contacts are required.")
+            if not contact_name or not emergency_contact_number:
+                st.error("Emergency contact information is required.")
             else:
                 resident_data = {
                     "name": name,
@@ -76,8 +91,13 @@ if option == "Create":
                     "username": username,
                     "password": password,
                 }
+                emergency_contact = {
+                    "contact_name": contact_name,
+                    "relationship": relationship,
+                    "contact_number": emergency_contact_number,
+                }
                 resident_manager.create_resident_with_contacts(
-                    resident_data, emergency_contacts
+                    resident_data, [emergency_contact]
                 )
                 st.success("Resident added successfully.")
 
@@ -93,37 +113,29 @@ elif option == "Update":
         username = st.text_input("Username:", placeholder="Optional")
         password = st.text_input("Password:", type="password", placeholder="Optional")
 
-        # Update emergency contacts
-        emergency_contacts = []
-        for i in range(2):  # Allow updating the first 2 emergency contacts
-            st.write(f"Emergency Contact {i + 1}:")
-            contact_name = st.text_input(
-                f"Contact Name {i + 1}:", key=f"update_contact_name_{i}"
-            )
-            relationship = st.text_input(
-                f"Relationship {i + 1}:", key=f"update_relationship_{i}"
-            )
-            emergency_contact_number = st.text_input(
-                f"Contact Number {i + 1}:", key=f"update_contact_number_{i}"
-            )
-            emergency_contacts.append(
-                {
-                    "contact_name": contact_name,
-                    "relationship": relationship,
-                    "contact_number": emergency_contact_number,
-                }
-            )
+        # Update emergency contact
+        st.write("Emergency Contact:")
+        contact_name = st.text_input("Contact Name:", key="update_contact_name")
+        relationship = st.text_input("Relationship:", key="update_relationship")
+        emergency_contact_number = st.text_input(
+            "Contact Number:", key="update_contact_number"
+        )
+        emergency_contact = {
+            "contact_name": contact_name,
+            "relationship": relationship,
+            "contact_number": emergency_contact_number,
+        }
 
         # Submit the update
         if st.button("Update Resident"):
             try:
                 resident_manager.update_record(
-                    resident_id=selected_resident_id,
+                    user_id=selected_resident_id,
                     contact_number=contact_number,
                     address=address,
                     username=username,
                     password=password,
-                    emergency_contacts=emergency_contacts,
+                    emergency_contacts=[emergency_contact],
                 )
                 st.success("Resident updated successfully.")
             except Exception as e:
@@ -141,7 +153,7 @@ elif option == "Delete":
         st.write(f"Are you sure you want to delete '{resident_name}'?")
         if st.button("Delete Resident"):
             try:
-                resident_manager.delete_record(selected_resident_id)
+                resident_manager.delete_resident_with_contacts(selected_resident_id)
                 st.success(
                     f"Resident '{resident_name}' and their emergency contacts have been deleted."
                 )

@@ -17,19 +17,21 @@ def login():
     role = st.selectbox(
         "Choose your role", ROLES[1:]
     )  # Remove None option for role selection
-    email = st.text_input("Email")
+    username = st.text_input("Username")
     password = st.text_input("Password", type="password")
 
     if st.button("Log in"):
-        if email and password and role:
+        if username and password and role:
             table_name = role.lower()
             query = text(
-                f"SELECT * FROM {table_name} WHERE email = :email AND password = :password"
+                f"SELECT * FROM {table_name} WHERE username = :username AND password = :password"
             )
             try:
                 with engine.connect() as conn:
                     result = (
-                        conn.execute(query, {"email": email, "password": password})
+                        conn.execute(
+                            query, {"username": username, "password": password}
+                        )
                         .mappings()
                         .fetchone()
                     )
@@ -41,7 +43,7 @@ def login():
                         st.success(f"Logged in successfully as {role}")
                         st.rerun()
                     else:
-                        st.error("Invalid email or password")
+                        st.error("Invalid username or password")
             except SQLAlchemyError as e:
                 st.error("Error during login. Please try again later.")
                 print(e)

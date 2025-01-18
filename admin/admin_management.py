@@ -77,12 +77,15 @@ elif option == "Update":
         )
 
         if st.button("Update Admin"):
-            admin_manager.update_record(
-                admin_id,
-                username=username,
-                password=password,
-                contact_number=contact_number,
-            )
+            try:
+                admin_manager.update_record(
+                    admin_id,
+                    username=username,
+                    password=password,
+                    contact_number=contact_number,
+                )
+            except Exception as e:
+                st.error(f"There is an error: {e}")
 
 elif option == "Delete":
     # Select admin by name for deletion

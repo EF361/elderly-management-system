@@ -39,7 +39,7 @@ if option == "Create":
         )
         username = st.text_input(
             "Enter Username:",
-            placeholder="edward",
+            placeholder="jasmine",
         )
         password = st.text_input(
             "Enter Password:",

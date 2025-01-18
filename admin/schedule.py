@@ -34,15 +34,13 @@ class ScheduleManagement(Management):
         }
 
     def fetch_schedule_options(self):
-        """Fetch schedule options with resident name, description, and event date."""
         query = """
-        SELECT s.schedule_id, r.name AS resident_name, s.description, s.event_date
+        SELECT s.schedule_id, COALESCE(r.name, 'Unknown') AS resident_name, s.description, s.event_date
         FROM Schedule s
-        JOIN Resident r ON s.resident_id = r.resident_id
+        LEFT JOIN Resident r ON s.resident_id = r.resident_id
         ORDER BY s.event_date, s.start_time;
         """
         result = self.conn.query(query)
-
         return {
             f"{row.resident_name} - {row.description} on {row.event_date}": row.schedule_id
             for row in result.itertuples(index=False)
@@ -89,36 +87,34 @@ if operation == "Create":
         staff = st.selectbox("Staff", options=list(schedule_manager.staff.keys()))
         event_type = st.selectbox(
             "Event Type",
-            options=[
-                "Medical Appointments",
-                "Meal times",
-                "Bathing and hygiene",
-                "Mobility assistance",
-                "Visits from family and friends",
-                "Social activities",
-                "Training sessions",
-                "Shift",
-            ],
+            options=["Medical Appointment", "Social Activity", "Shift", "Other"],
         )
         event_date = st.date_input("Event Date", value=date.today())
-        start_time = st.time_input("Start Time", value=datetime.now().time())
-        end_time = st.time_input("End Time", value=datetime.now().time())
+        start_time = st.time_input("Start Time")
+        end_time = st.time_input("End Time")
         description = st.text_area(
             "Description",
             placeholder="Exp. Asthma follow-up",
         )
 
         if st.button("Add Schedule"):
-            schedule_manager.create_record(
-                resident_id=schedule_manager.residents[resident],
-                staff_id=schedule_manager.staff[staff],
-                event_type=event_type,
-                event_date=event_date,
-                start_time=start_time,
-                end_time=end_time,
-                description=description,
-            )
+            # Validate inputs
+            if not start_time or not end_time:
+                st.error("Start time and end time cannot be empty.")
+            elif start_time >= end_time:
+                st.error("Start time must be before end time.")
+            else:
+                schedule_manager.create_record(
+                    resident_id=schedule_manager.residents[resident],
+                    staff_id=schedule_manager.staff[staff],
+                    event_type=event_type,
+                    event_date=event_date,
+                    start_time=start_time,
+                    end_time=end_time,
+                    description=description,
+                )
 
+# Fixed Update Code
 elif operation == "Update":
     with st.expander("Update Schedule"):
         selected_schedule = st.selectbox(
@@ -126,42 +122,49 @@ elif operation == "Update":
             options=list(schedule_manager.schedules.keys()),
         )
         schedule_id = schedule_manager.schedules[selected_schedule]
-        resident = st.selectbox(
-            "Resident", options=list(schedule_manager.residents.keys())
-        )
+
         staff = st.selectbox("Staff", options=list(schedule_manager.staff.keys()))
         event_type = st.selectbox(
             "Event Type",
-            options=[
-                "Medical Appointments",
-                "Meal times",
-                "Bathing and hygiene",
-                "Mobility assistance",
-                "Visits from family and friends",
-                "Social activities",
-                "Training sessions",
-                "Shift",
-            ],
+            options=["Medical Appointment", "Social Activity", "Shift", "Other"],
         )
         event_date = st.date_input("Event Date", value=date.today())
-        start_time = st.time_input("Start Time", value=datetime.now().time())
-        end_time = st.time_input("End Time", value=datetime.now().time())
+        start_time = st.time_input("Start Time")
+        end_time = st.time_input("End Time")
         description = st.text_area(
             "Description",
             placeholder="Optional",
         )
 
         if st.button("Update Schedule"):
-            schedule_manager.update_record(
-                schedule_id,
-                resident_id=schedule_manager.residents[resident],
-                staff_id=schedule_manager.staff[staff],
-                event_type=event_type,
-                event_date=event_date,
-                start_time=start_time,
-                end_time=end_time,
-                description=description,
-            )
+            # Validate inputs
+            if not start_time or not end_time:
+                st.error("Start time and end time cannot be empty.")
+            elif start_time >= end_time:
+                st.error("Start time must be before end time.")
+            elif event_type not in [
+                "Medical Appointment",
+                "Social Activity",
+                "Shift",
+                "Other",
+            ]:
+                st.error(
+                    f"Invalid event type: {event_type}. Allowed values are: Medical Appointment, Social Activity, Shift, Other."
+                )
+            else:
+                try:
+                    schedule_manager.update_record(
+                        schedule_id,
+                        staff_id=schedule_manager.staff[staff],
+                        event_type=event_type,
+                        event_date=event_date,
+                        start_time=start_time,
+                        end_time=end_time,
+                        description=description,
+                    )
+                except Exception as e:
+                    st.error(f"Error updating schedule: {str(e)}")
+
 
 elif operation == "Delete":
     selected_schedule = st.selectbox(
