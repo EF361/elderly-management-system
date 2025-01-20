@@ -4,6 +4,7 @@ from management import Management
 
 # Initialize the Resident Manager
 resident_manager = Management(table_name="Resident")
+emergency_contact = Management(table_name="resident_emergency_contacts")
 
 # Check if user is logged in
 if "user_name" in st.session_state:
@@ -13,40 +14,10 @@ else:
     st.error("You are not logged in. Please log in to access the dashboard.")
     st.stop()
 
-# Fetch the resident table with emergency contacts
-residents_with_contacts = resident_manager.fetch_full_residents_with_contacts()
-
-# Display resident table in a readable format
-if residents_with_contacts:
-    resident_data = [
-        {
-            "Resident ID": entry["resident_id"],
-            "Name": entry["name"],
-            "Date of Birth": entry["date_of_birth"],
-            "Gender": entry["gender"],
-            "Contact Number": entry["contact_number"],
-            "Address": entry["address"],
-            "Username": entry["username"],
-        }
-        for entry in residents_with_contacts
-    ]
-    st.write("### Residents")
-    st.dataframe(resident_data)
-
-    contact_data = [
-        {
-            "Contact ID": entry.get("contact_id"),
-            "Resident Name": entry["name"],
-            "Emergency Contact Name": entry["contact_name"],
-            "Relationship": entry["relationship"],
-            "Contact Number": entry["emergency_contact_number"],
-        }
-        for entry in residents_with_contacts
-    ]
-    st.write("### Emergency Contacts")
-    st.dataframe(contact_data)
-else:
-    st.write("No resident records available.")
+st.subheader("Resident")
+resident_manager.show_table()
+st.subheader("Resident Emergency Contact")
+emergency_contact.show_table()
 
 # Fetch residents for dropdown selection
 residents = resident_manager.fetch_options("Resident", "resident_id", "name")

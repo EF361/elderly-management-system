@@ -12,8 +12,23 @@ if "role" not in st.session_state:
 ROLES = [None, "Resident", "Staff", "Admin"]
 
 
+# Load the CSS file
+def local_css(file_name):
+    with open(file_name) as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+
+# Apply the CSS
+local_css("styles.css")
+
+
 def login():
-    st.title("Login to Carelink")
+    st.markdown(
+        """
+    <h1 class="center-title">Carelink</h1>
+    """,
+        unsafe_allow_html=True,
+    )
     role = st.selectbox(
         "Choose your role", ROLES[1:]
     )  # Remove None option for role selection
@@ -37,9 +52,7 @@ def login():
                     )
                     if result:
                         st.session_state.role = role
-                        st.session_state.user_name = result[
-                            "name"
-                        ]  # Access using column name
+                        st.session_state.user_name = result["name"]
                         st.success(f"Logged in successfully as {role}")
                         st.rerun()
                     else:
