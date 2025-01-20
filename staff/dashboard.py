@@ -83,22 +83,3 @@ if age_data:
     st.plotly_chart(age_histogram)
 else:
     st.info("No age data available.")
-
-# Task Summary Section
-st.subheader("Task Summary")
-task_summary_data = fetch_data(
-    f"""
-    SELECT s.event_type, COUNT(*) 
-    FROM Schedule s 
-    WHERE s.event_date = '{today_date}' 
-    GROUP BY s.event_type
-    """
-)
-if task_summary_data:
-    task_summary_df = pd.DataFrame(task_summary_data, columns=["Task Type", "Count"])
-    task_bar_chart = px.bar(
-        task_summary_df, x="Task Type", y="Count", title="Task Breakdown for Today"
-    )
-    st.plotly_chart(task_bar_chart)
-else:
-    st.info("No task data available for today.")

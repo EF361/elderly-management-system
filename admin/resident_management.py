@@ -35,7 +35,7 @@ if residents_with_contacts:
 
     contact_data = [
         {
-            "Contact ID": entry.get("contact_id", "N/A"),
+            "Contact ID": entry.get("contact_id"),
             "Resident Name": entry["name"],
             "Emergency Contact Name": entry["contact_name"],
             "Relationship": entry["relationship"],

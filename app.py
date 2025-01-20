@@ -80,12 +80,6 @@ shift = st.Page(
 )
 
 # objects for resident
-chatbot = st.Page(
-    "resident/chatbot.py",
-    title="Chatbot",
-    icon=":material/robot:",
-    default=(role == "Resident"),
-)
 resident_dashboard = st.Page(
     "resident/dashboard.py",
     title="Overview",
@@ -97,6 +91,14 @@ schedule = st.Page(
     title="Schedule",
     icon=":material/table:",
 )
+
+chatbot = st.Page(
+    "resident/chatbot.py",
+    title="Chatbot",
+    icon=":material/robot:",
+    default=(role == "Resident"),
+)
+
 
 # objects for admin
 admin_dashboard = st.Page(
