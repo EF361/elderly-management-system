@@ -108,7 +108,6 @@ elif option == "Update":
                     password=password,
                     emergency_contacts=[emergency_contact],
                 )
-                st.success("Resident updated successfully.")
             except Exception as e:
                 st.error(f"Error updating resident: {e}")
 
