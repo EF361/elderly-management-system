@@ -209,7 +209,7 @@ def generate_response(prompt, resident_info):
             {
                 "role": "system",
                 "content": """You are a helpful virtual assistant for an elderly care management system. 
-                You are going to help with answering schedule (you do not plan schedule for the resident)""",
+                You are going to help with answering scheduling for the day (you do not plan schedule for the resident)""",
             },
             {
                 "role": "system",
@@ -230,7 +230,9 @@ def generate_response(prompt, resident_info):
                 Current medications:
                 {medication_info}
 
-                Do not generate data not found in the database.""",
+                Do not generate data not found in the database.
+                Do not answer questions that are not related to the elderly care management system: 
+                Example out of range questions: What is the history of Malaysia.""",
             },
             {"role": "user", "content": prompt},
         ]
