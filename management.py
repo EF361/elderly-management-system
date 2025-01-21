@@ -1,5 +1,6 @@
 import streamlit as st
 from sqlalchemy import create_engine, text
+from sqlalchemy.exc import IntegrityError
 
 
 # Management class
@@ -10,6 +11,7 @@ class Management:
         self.engine = create_engine(
             "postgresql://postgres:12345@localhost:5432/elderlymanagement"
         )
+
         self.fields = self.get_table_fields()
 
     def get_table_fields(self):
@@ -17,12 +19,7 @@ class Management:
         table_fields = {
             "admin": {
                 "primary_key": "admin_id",
-                "fields": [
-                    "name",
-                    "username",
-                    "password",
-                    "contact_number",
-                ],
+                "fields": ["name", "username", "password", "contact_number"],
             },
             "resident": {
                 "primary_key": "resident_id",
@@ -36,7 +33,7 @@ class Management:
                     "password",
                 ],
             },
-            "staff": {
+            "staff": {  # Ensure this is defined correctly
                 "primary_key": "staff_id",
                 "fields": [
                     "name",
@@ -56,6 +53,18 @@ class Management:
                     "doctor_id",
                     "record_date",
                     "medicine_id",
+                ],
+            },
+            "schedule": {
+                "primary_key": "schedule_id",
+                "fields": [
+                    "resident_id",
+                    "staff_id",
+                    "event_type",
+                    "event_date",
+                    "start_time",
+                    "end_time",
+                    "description",
                 ],
             },
         }
@@ -86,17 +95,17 @@ class Management:
         """Show all records dynamically for each table."""
         if self.table_name.lower() == "resident":
             query = f"""
-                SELECT resident_id, name, date_of_birth, gender, contact_number, address, username
+                SELECT resident_id, name, date_of_birth, gender, contact_number, address, username, password
                 FROM {self.table_name};
             """
         elif self.table_name.lower() == "staff":
             query = f"""
-                SELECT staff_id, name, role, contact_number, username, hire_date
+                SELECT staff_id, name, role, contact_number, username, hire_date, password
                 FROM {self.table_name};
             """
         elif self.table_name.lower() == "admin":
             query = f"""
-                SELECT admin_id, name, username, contact_number
+                SELECT admin_id, name, username, contact_number, password
                 FROM {self.table_name};
             """
         elif self.table_name.lower() == "resident_emergency_contacts":
@@ -114,8 +123,12 @@ class Management:
 
     def create_record(self, **kwargs):
         """Insert a new record into the specified user table."""
+        if not self.fields:
+            st.error(f"Table '{self.table_name}' not found in schema definitions.")
+            return
+
         missing_fields = [
-            field for field in self.fields["fields"] if field not in kwargs
+            field for field in self.fields.get("fields", []) if field not in kwargs
         ]
         if missing_fields:
             st.error(f"Missing fields: {', '.join(missing_fields)}")
@@ -142,15 +155,26 @@ class Management:
         primary_key = self.fields["primary_key"]
 
         with self.conn.connect() as conn:
-            result = conn.execute(
-                text(f"SELECT * FROM {self.table_name} WHERE {primary_key} = :user_id"),
-                {"user_id": user_id},
-            ).fetchone()
+            # Fetch current resident data
+            result = (
+                conn.execute(
+                    text(
+                        f"SELECT * FROM {self.table_name} WHERE {primary_key} = :user_id"
+                    ),
+                    {"user_id": user_id},
+                )
+                .mappings()
+                .fetchone()
+            )  # Ensures dictionary-like result
 
             if result:
-                current_values = result._mapping  # Access the columns by name
+                current_values = dict(result)  # Convert row to dictionary
+
+                # Update resident fields, keeping original values if input is empty
                 update_data = {
-                    field: kwargs.get(field) or current_values[field]
+                    field: kwargs.get(field)
+                    if kwargs.get(field)
+                    else current_values.get(field)
                     for field in self.fields["fields"]
                 }
                 update_set = ", ".join([f"{field} = :{field}" for field in update_data])
@@ -161,47 +185,84 @@ class Management:
                     ),
                     {"user_id": user_id, **update_data},
                 )
+
+                # Update emergency contact if provided
+                if "emergency_contacts" in kwargs and kwargs["emergency_contacts"]:
+                    emergency_contact = kwargs["emergency_contacts"][
+                        0
+                    ]  # Only update one emergency contact for now
+
+                    # Fetch current emergency contact data
+                    current_emergency_contact = (
+                        conn.execute(
+                            text(
+                                "SELECT contact_name, relationship, contact_number FROM Resident_Emergency_Contacts WHERE resident_id = :user_id"
+                            ),
+                            {"user_id": user_id},
+                        )
+                        .mappings()
+                        .fetchone()
+                    )  # Ensure dictionary access
+
+                    if current_emergency_contact:
+                        # Use existing values if no new data is provided
+                        contact_name = (
+                            emergency_contact.get("contact_name")
+                            or current_emergency_contact["contact_name"]
+                        )
+                        relationship = (
+                            emergency_contact.get("relationship")
+                            or current_emergency_contact["relationship"]
+                        )
+                        contact_number = (
+                            emergency_contact.get("contact_number")
+                            or current_emergency_contact["contact_number"]
+                        )
+
+                        # Update emergency contact in Resident_Emergency_Contacts
+                        conn.execute(
+                            text(
+                                "UPDATE Resident_Emergency_Contacts "
+                                "SET contact_name = :contact_name, relationship = :relationship, contact_number = :contact_number "
+                                "WHERE resident_id = :user_id"
+                            ),
+                            {
+                                "user_id": user_id,
+                                "contact_name": contact_name,
+                                "relationship": relationship,
+                                "contact_number": contact_number,
+                            },
+                        )
+
                 conn.commit()
                 st.success("Record updated successfully!")
             else:
                 st.error("Record not found.")
 
-    def delete_record(self, user_id):
-        """Delete a record from the specified user table by primary key."""
-        primary_key = self.fields["primary_key"]
-        with self.conn.connect() as conn:
-            conn.execute(
-                text(f"DELETE FROM {self.table_name} WHERE {primary_key} = :user_id"),
-                {"user_id": user_id},
-            )
-            conn.commit()
-        st.success("Record deleted successfully!")
+    def delete_record(self, table_name, user_id):
+        """
+        Deletes a record from the specified table and cleans up related records
+        based on database foreign key constraints.
+        """
+        try:
+            with self.conn.connect() as conn:
+                # Execute the delete query
+                conn.execute(
+                    text(f"DELETE FROM {table_name} WHERE {table_name}_id = :user_id"),
+                    {"user_id": user_id},
+                )
+                conn.commit()
+                st.success(f"Record successfully deleted from {table_name}!")
+        except IntegrityError as e:
+            st.error(f"Error deleting record: {e}")
+        except Exception as e:
+            st.error(f"Unexpected error: {e}")
 
     def fetch_options(self, table_name, id_field, name_field):
         """Fetch ID and Name pairs for dropdown selections."""
         query = f"SELECT {id_field}, {name_field} FROM {table_name}"
         result = self.conn.query(query, ttl=0)
         return {row[name_field]: row[id_field] for _, row in result.iterrows()}
-
-    def fetch_full_residents_with_contacts(self):
-        query = """
-        SELECT r.resident_id, r.name, r.date_of_birth, r.gender, r.contact_number, 
-            r.address, r.username, rec.contact_name, rec.relationship, rec.contact_number AS emergency_contact_number
-        FROM Resident r
-        LEFT JOIN Resident_Emergency_Contacts rec ON r.resident_id = rec.resident_id;
-        """
-        try:
-            # Get the connection object
-            conn = st.connection("postgresql", type="sql")
-
-            # Execute the query using the `query` method
-            result = conn.query(query)
-
-            # Convert result to a list of dictionaries if needed
-            return [dict(row) for row in result]
-        except Exception as e:
-            st.error(f"Error fetching residents with contacts: {e}")
-            return []
 
     def show_full_table(self, data):
         if not data:
@@ -222,24 +283,6 @@ class Management:
             st.markdown(f"**Emergency Relationship:** {entry['relationship']}")
             st.markdown(f"**Emergency Contact Number:** {entry['contact_number']}")
             st.divider()
-
-    def get_table_fields(self):
-        table_fields = {
-            "resident": {
-                "primary_key": "resident_id",
-                "fields": [
-                    "name",
-                    "date_of_birth",
-                    "gender",
-                    "contact_number",
-                    "address",
-                    "username",
-                    "password",
-                ],
-            },
-            # Define for other tables if necessary
-        }
-        return table_fields.get(self.table_name.lower(), {})
 
     def create_resident_with_contacts(self, resident_data, emergency_contacts):
         """Insert a resident and their emergency contacts."""
@@ -281,23 +324,10 @@ class Management:
         except Exception as e:
             st.error(f"Error creating resident with contacts: {e}")
 
-    def fetch_full_residents_with_contacts(self):
-        """Fetch residents and their emergency contacts."""
-        query = """
-        SELECT r.resident_id, r.name, r.date_of_birth, r.gender, r.contact_number, 
-               r.address, r.username, rec.contact_name, rec.relationship, rec.contact_number AS emergency_contact_number
-        FROM Resident r
-        LEFT JOIN Resident_Emergency_Contacts rec ON r.resident_id = rec.resident_id;
+    def delete_resident(self, resident_id):
         """
-        try:
-            result = self.conn.query(query, ttl=0)
-            return result.to_dict("records")  # Convert to a list of dictionaries
-        except Exception as e:
-            st.error(f"Error fetching residents with contacts: {e}")
-            return []
-
-    def delete_resident_with_contacts(self, resident_id):
-        """Delete a resident and their emergency contacts."""
+        Deletes a resident and all related records using cascading delete.
+        """
         try:
             with self.conn.connect() as conn:
                 conn.execute(
@@ -305,6 +335,41 @@ class Management:
                     {"resident_id": resident_id},
                 )
                 conn.commit()
-            st.success("Resident and emergency contacts deleted successfully!")
+                st.success(
+                    f"Resident with ID {resident_id} and related records deleted successfully!"
+                )
         except Exception as e:
             st.error(f"Error deleting resident: {e}")
+
+    def clean_up_null_entries(self):
+        """
+        Deletes orphaned rows where foreign key columns are NULL (e.g., in Schedule or Medical_Record).
+        """
+        try:
+            with self.conn.connect() as conn:
+                conn.execute(
+                    text(
+                        "DELETE FROM Schedule WHERE resident_id IS NULL AND staff_id IS NULL"
+                    )
+                )
+                conn.commit()
+                st.success("Orphaned entries in Schedule cleaned up!")
+        except Exception as e:
+            st.error(f"Error during cleanup: {e}")
+
+    def delete_staff(self, staff_id):
+        """
+        Deletes a staff member and all related records using cascading delete.
+        """
+        try:
+            with self.conn.connect() as conn:
+                conn.execute(
+                    text("DELETE FROM Staff WHERE staff_id = :staff_id"),
+                    {"staff_id": staff_id},
+                )
+                conn.commit()
+                st.success(
+                    f"Staff with ID {staff_id} and related records deleted successfully!"
+                )
+        except Exception as e:
+            st.error(f"Error deleting staff: {e}")

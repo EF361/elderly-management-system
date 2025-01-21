@@ -1,7 +1,7 @@
 import streamlit as st
 from management import Management
 
-admin_manager = Management(table_name="Admin")
+admin_manager = Management(table_name="admin")
 
 # Check if user is logged in, if yes, display title
 if "user_name" in st.session_state:
@@ -32,7 +32,7 @@ if option == "Create":
         )
         username = st.text_input(
             "Enter Username:",
-            placeholder="alex@admin.com",
+            placeholder="alex",
         )
         password = st.text_input(
             "Enter Password:",
@@ -45,12 +45,16 @@ if option == "Create":
         )
 
         if st.button("Add Admin"):
-            admin_manager.create_record(
-                name=name,
-                username=username,
-                password=password,
-                contact_number=contact_number,
-            )
+            # Check if any required fields are empty
+            if not name or not contact_number or not username or not password:
+                st.error("Please fill in all required fields.")
+            else:
+                admin_manager.create_record(
+                    name=name,
+                    username=username,
+                    password=password,
+                    contact_number=contact_number,
+                )
 
 
 elif option == "Update":

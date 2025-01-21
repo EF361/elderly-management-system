@@ -3,7 +3,7 @@ from datetime import datetime
 from management import Management
 
 # Initialize the Resident Manager
-resident_manager = Management(table_name="Resident")
+resident_manager = Management(table_name="resident")
 emergency_contact = Management(table_name="resident_emergency_contacts")
 
 # Check if user is logged in
@@ -50,7 +50,10 @@ if option == "Create":
 
         # Submit the data
         if st.button("Add Resident"):
-            if not contact_name or not emergency_contact_number:
+            # Check if any required fields are empty
+            if not name or not contact_number or not username or not password:
+                st.error("Please fill in all required fields")
+            elif not contact_name or not emergency_contact_number:
                 st.error("Emergency contact information is required.")
             else:
                 resident_data = {
@@ -70,7 +73,7 @@ if option == "Create":
                 resident_manager.create_resident_with_contacts(
                     resident_data, [emergency_contact]
                 )
-                st.success("Resident added successfully.")
+
 
 elif option == "Update":
     with st.expander("Update Resident"):
@@ -106,10 +109,13 @@ elif option == "Update":
                     address=address,
                     username=username,
                     password=password,
-                    emergency_contacts=[emergency_contact],
+                    emergency_contacts=[
+                        emergency_contact
+                    ],  # Pass the emergency contact to update
                 )
             except Exception as e:
                 st.error(f"Error updating resident: {e}")
+
 
 elif option == "Delete":
     with st.expander("Delete Resident"):
@@ -123,9 +129,7 @@ elif option == "Delete":
         st.write(f"Are you sure you want to delete '{resident_name}'?")
         if st.button("Delete Resident"):
             try:
-                resident_manager.delete_resident_with_contacts(selected_resident_id)
-                st.success(
-                    f"Resident '{resident_name}' and their emergency contacts have been deleted."
-                )
+                resident_manager.delete_resident(selected_resident_id)
+                resident_manager.clean_up_null_entries()
             except Exception as e:
                 st.error(f"Error deleting resident: {e}")

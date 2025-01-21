@@ -122,7 +122,7 @@ admin_dashboard = st.Page(
 )
 admin_medication = st.Page(
     "admin/medication.py",
-    title="Medication Management",
+    title="Medicine Management",
     icon=":material/medication:",
 )
 reports = st.Page(

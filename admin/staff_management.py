@@ -2,7 +2,7 @@ import streamlit as st
 from management import Management
 from datetime import date
 
-staff_manager = Management(table_name="Staff")
+staff_manager = Management(table_name="staff")
 
 # Check if user is logged in, if yes, display title
 if "user_name" in st.session_state:
@@ -49,14 +49,25 @@ if option == "Create":
         hire_date = st.date_input("Select Hire Date:", value=date.today())
 
         if st.button("Add Staff"):
-            staff_manager.create_record(
-                name=name,
-                role=role,
-                contact_number=contact_number,
-                username=username,
-                password=password,
-                hire_date=hire_date,
-            )
+            # Check if any required fields are empty
+            if (
+                not name
+                or not role
+                or not username
+                or not password
+                or not contact_number
+                or not hire_date
+            ):
+                st.error("Please fill in all required fields.")
+            else:
+                staff_manager.create_record(
+                    name=name,
+                    role=role,
+                    contact_number=contact_number,
+                    username=username,
+                    password=password,
+                    hire_date=hire_date,
+                )
 
 elif option == "Update":
     with st.expander("Update Staff"):
@@ -100,4 +111,5 @@ elif option == "Delete":
     with st.expander("Confirm Deletion"):
         st.write(f"Are you sure you want to delete '{selected_name}'?")
         if st.button("Delete Staff"):
-            staff_manager.delete_record(staff_id)
+            staff_manager.delete_staff(staff_id)
+            staff_manager.clean_up_null_entries()

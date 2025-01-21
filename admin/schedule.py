@@ -69,7 +69,7 @@ class ScheduleManagement(Management):
 
 # Initialize ScheduleManagement
 schedule_manager = ScheduleManagement()
-
+table_name = "schedule"
 
 # Check if user is logged in, if yes, display title
 if "user_name" in st.session_state:
@@ -238,4 +238,4 @@ elif operation == "Delete":
     with st.expander("Confirm Deletion"):
         st.write(f"Are you sure you want to delete '{selected_schedule}'?")
         if st.button("Delete Schedule"):
-            schedule_manager.delete_record(schedule_id)
+            schedule_manager.delete_record(table_name, schedule_id)
