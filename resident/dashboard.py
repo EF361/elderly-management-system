@@ -12,15 +12,6 @@ else:
     st.error("You are not logged in. Please log in to access the dashboard.")
     st.stop()
 
-
-def local_css(file_name):
-    with open(file_name) as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-
-
-local_css("styles.css")
-
-
 # Fetch resident data from the database
 resident_info = None
 try:
@@ -45,7 +36,7 @@ except Exception as e:
 # Display profile information
 if resident_info:
     st.markdown(
-        f"<h1 style='text-align: center; color: #4CAF50;'>Welcome, {resident_info['name']}!</h1>",
+        f"<h1 style='text-align: center;'>Welcome, {resident_info['name']}!</h1>",
         unsafe_allow_html=True,
     )
     st.markdown("---")

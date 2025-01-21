@@ -65,7 +65,7 @@ def login():
 
 
 def logout():
-    st.session_state.role = None
+    st.session_state.clear()
     st.rerun()
 
 
