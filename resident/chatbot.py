@@ -155,8 +155,6 @@ def get_admin_contact():
 
 
 # --- CHATBOT FUNCTIONS ---
-
-
 def generate_response(prompt, resident_info):
     """
     Generate chatbot responses using OpenAI, including schedule and medication details.
@@ -251,7 +249,7 @@ def generate_response(prompt, resident_info):
 # --- MAIN APP LOGIC ---
 if "user_name" in st.session_state:
     user_name = st.session_state["user_name"]
-    st.header(f"{user_name}'s chatbot")
+    st.from django.utils.translation import ugettext_lazy as _(f"{user_name}'s chatbot")
 
     resident_info = get_resident_info(user_name)
     if not resident_info:

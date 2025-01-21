@@ -69,9 +69,13 @@ if schedule_data:
         end_time = event[3]
         description = event[4]
 
+        # Format start and end times to show only HH:MM
+        formatted_start_time = start_time.strftime("%H:%M")
+        formatted_end_time = end_time.strftime("%H:%M")
+
         # Display each event in a readable format
         st.write(f"### {event_type}")
         st.write(f"**Date:** {event_date}")
-        st.write(f"**Time:** {start_time} - {end_time}")
+        st.write(f"**Time:** {formatted_start_time} - {formatted_end_time}")
         st.write(f"**Description:** {description}")
         st.write("---")
