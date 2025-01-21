@@ -11,7 +11,7 @@ class MedicineManagement(Management):
             "fields": ["medicine_name", "description", "usage", "stock_quantity"],
         }
 
-    def show_table_schedule(self):
+    def show_table_meds(self):
         """Display all medicines in a table."""
         query = """
         SELECT m.medicine_id, m.medicine_name, m.description, m.usage, m.stock_quantity
@@ -33,7 +33,7 @@ else:
 
 
 # Display table of medicines
-med_manager.show_table_schedule()
+med_manager.show_table_meds()
 
 # Fetch medicine for dropdown selections
 medicines = med_manager.fetch_options("Medicine", "medicine_id", "medicine_name")
@@ -82,7 +82,6 @@ elif option == "Update":
 
         # Fetch the selected medicine's details
         selected_medicine_id = medicines[medicine_name]
-        st.write(f"Selected Medicine ID: {selected_medicine_id}")
 
         # Input fields for updatable data
         description = st.text_area(

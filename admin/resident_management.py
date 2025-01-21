@@ -99,7 +99,7 @@ elif option == "Update":
         st.write("Emergency Contact:")
         contact_name = st.text_input("Contact Name:", key="update_contact_name")
         relationship = st.text_input("Relationship:", key="update_relationship")
-        emergency_contact_number = emergency_contact.render(
+        emergency_contact_number = emergency_contact_input.render(
             key="emergency_contact_number"
         )
         emergency_contact = {

@@ -114,7 +114,13 @@ class Management:
             FROM Resident_Emergency_Contacts rec
             LEFT JOIN Resident r ON rec.resident_id = r.resident_id;
             """
-
+        elif self.table_name.lower() == "schedule":
+            query = """
+            SELECT sch.schedule_id, r.name AS resident_name, s.name AS staff_name, sch.event_type, sch.start_time, sch.end_time, sch.description
+            FROM schedule sch
+            LEFT JOIN Resident r ON sch.resident_id = r.resident_id
+            LEFT JOIN Staff s ON sch.staff_id = s.staff_id;
+            """
         try:
             result = self.conn.query(query, ttl=0)
             st.dataframe(result, use_container_width=True)

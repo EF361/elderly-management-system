@@ -93,44 +93,58 @@ if option == "Create" and user_role == "Doctor":
 # Update medical record (for Doctors only)
 elif option == "Update" and user_role == "Doctor":
     with st.expander("Update Medicine"):
-        # Fetch existing medical records for selection
-        medical_records = medical_record_management.fetch_options(
-            "Medical_Record", "record_id", "diagnosis"
-        )
-        if not medical_records:
-            st.info("No records available to update.")
-        else:
-            record_to_update = st.selectbox(
-                "Select Record to Update:", options=list(medical_records.keys())
-            )
-            selected_record_id = medical_records[record_to_update]
+        # Fetch existing medical records for deletion with resident name and diagnosis
+        query = """
+        SELECT mr.record_id, r.name AS resident_name, mr.diagnosis
+        FROM Medical_Record mr
+        LEFT JOIN Resident r ON mr.resident_id = r.resident_id;
+        """
+        try:
+            # Fetch the medical records with resident name and diagnosis
+            records = medical_record_management.conn.query(query, ttl=0)
 
-            # Input fields for updatable data
-            diagnosis = st.text_area("Diagnosis:", placeholder="Optional")
-            treatment = st.text_area("Treatment:", placeholder="Optional")
-            medicine_name = st.selectbox(
-                "Select Medicine:", options=list(medicines.keys())
-            )
-            selected_medicine_id = medicines.get(medicine_name)
+            # Create a list of display options combining the resident name and diagnosis
+            records_to_display = {
+                f"{row['resident_name']} - {row['diagnosis']}": row["record_id"]
+                for _, row in records.iterrows()
+            }
 
-            doctor_name = st.session_state["user_name"]
-            selected_doctor_id = staff[doctor_name]
+            if not records_to_display:
+                st.info("No records available to update.")
+            else:
+                record_to_update = st.selectbox(
+                    "Select Record to Update:", options=list(records_to_display.keys())
+                )
+                selected_record_id = records_to_display[record_to_update]
 
-            record_date = st.date_input("Record Date:", value=date.today())
+                # Input fields for updatable data
+                diagnosis = st.text_area("Diagnosis:", placeholder="Optional")
+                treatment = st.text_area("Treatment:", placeholder="Optional")
+                medicine_name = st.selectbox(
+                    "Select Medicine:", options=list(medicines.keys())
+                )
+                selected_medicine_id = medicines.get(medicine_name)
 
-            if st.button("Update Medical Record"):
-                try:
-                    # Update the medical record
-                    medical_record_management.update_record(
-                        selected_record_id,
-                        diagnosis=diagnosis,
-                        treatment=treatment,
-                        doctor_id=selected_doctor_id,  # Maps to staff_id
-                        record_date=record_date,
-                        medicine_id=selected_medicine_id,
-                    )
-                except Exception as e:
-                    st.error(f"There was an error: {e}")
+                doctor_name = st.session_state["user_name"]
+                selected_doctor_id = staff[doctor_name]
+
+                record_date = st.date_input("Record Date:", value=date.today())
+
+                if st.button("Update Medical Record"):
+                    try:
+                        # Update the medical record
+                        medical_record_management.update_record(
+                            selected_record_id,
+                            diagnosis=diagnosis,
+                            treatment=treatment,
+                            doctor_id=selected_doctor_id,  # Maps to staff_id
+                            record_date=record_date,
+                            medicine_id=selected_medicine_id,
+                        )
+                    except Exception as e:
+                        st.error(f"There was an error: {e}")
+        except Exception as e:
+            st.error(f"Error fetching medical records: {e}")
 
 # Delete medical record (for Doctors only)
 elif option == "Delete" and user_role == "Doctor":
