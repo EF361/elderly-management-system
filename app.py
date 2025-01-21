@@ -97,6 +97,7 @@ resident_dashboard = st.Page(
     "resident/dashboard.py",
     title="Overview",
     icon=":material/dashboard:",
+    default=(role == "Resident"),
 )
 
 schedule = st.Page(
@@ -109,7 +110,6 @@ chatbot = st.Page(
     "resident/chatbot.py",
     title="Chatbot",
     icon=":material/robot:",
-    default=(role == "Resident"),
 )
 
 
@@ -171,7 +171,10 @@ admin_pages = [
     admin_management,
     reports,
 ]
-st.logo("images/logo.png", icon_image="images/logo.png")
+st.logo(
+    image="images/logo.png",
+    size="large",
+)
 
 page_dict = {}
 if st.session_state.role in ["Staff"]:
