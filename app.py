@@ -154,8 +154,8 @@ admin_management = st.Page(
 account_pages = [logout_page]
 staff_pages = [
     staff_dashboard,
-    staff_medication,
     shift,
+    staff_medication,
 ]
 resident_pages = [
     resident_dashboard,

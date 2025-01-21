@@ -50,8 +50,6 @@ if resident_info:
             st.image("images/old_man_logo.png", width=200)
         elif resident_info["gender"] == "Female":
             st.image("images/old_women_logo.png", width=200)
-        else:
-            st.image("images/resident-placeholder.jpg", width=200)
 
     with col2:
         # Display resident details in an info box

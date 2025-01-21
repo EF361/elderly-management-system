@@ -4,82 +4,136 @@ import pandas as pd
 import plotly.express as px
 from datetime import date
 
-# Set up database connection
-engine = create_engine("postgresql://postgres:12345@localhost:5432/elderlymanagement")
-
-
-# Fetch data function
-def fetch_data(query):
-    with engine.connect() as conn:
-        result = conn.execute(text(query))
-        return result.fetchall()
-
+# Database connection setup
+DATABASE_URL = "postgresql://postgres:12345@localhost:5432/elderlymanagement"
+engine = create_engine(DATABASE_URL)
 
 # Check if user is logged in
 if "user_name" in st.session_state:
-    user_name = st.session_state["user_name"]
-    st.title(f"{user_name}'s Dashboard")
+    staff_name = st.session_state["user_name"]
 else:
     st.error("You are not logged in. Please log in to access the dashboard.")
     st.stop()
 
-# Dashboard title
-st.subheader("Daily Overview and Insights")
+# Fetch staff profile data
+staff_info = None
+try:
+    with engine.connect() as connection:
+        query = text("""
+            SELECT name, role, contact_number, hire_date
+            FROM Staff
+            WHERE name = :name
+        """)
+        result = connection.execute(query, {"name": staff_name}).mappings().first()
 
-# Summary Cards
+        if result:
+            staff_info = dict(result)
+        else:
+            st.warning("No data found for the logged-in staff. Please verify the name.")
+except Exception as e:
+    st.error(f"Error fetching staff data: {e}")
+    st.stop()
+
+# Fetch tasks assigned today
 today_date = date.today()
-tasks_assigned = fetch_data(
-    f"SELECT COUNT(*) FROM Schedule WHERE event_date = '{today_date}' AND event_type IN ('Shift', 'Medical Appointment', 'Social Activity')"
-)[0][0]
-tasks_completed = fetch_data(
-    f"SELECT COUNT(*) FROM Schedule WHERE event_date = '{today_date}' AND description LIKE '%Completed%'"
-)[0][0]
-staff_shifts = fetch_data(
-    f"SELECT COUNT(*) FROM Schedule WHERE event_date = '{today_date}' AND event_type = 'Shift'"
-)[0][0]
+tasks_assigned_today = 0
+try:
+    with engine.connect() as connection:
+        query = text("""
+            SELECT COUNT(*)
+            FROM Schedule
+            WHERE event_date = :today_date AND staff_id = (
+                SELECT staff_id FROM Staff WHERE name = :name
+            )
+        """)
+        tasks_assigned_today = connection.execute(
+            query, {"today_date": today_date, "name": staff_name}
+        ).scalar()
+except Exception as e:
+    st.error(f"Error fetching tasks: {e}")
+    st.stop()
 
-col1, col2, col3 = st.columns(3)
-col1.metric("Tasks Assigned", tasks_assigned)
-col2.metric("Tasks Completed", tasks_completed)
-col3.metric("Staff Shifts", staff_shifts)
+# Fetch resident demographic data
+age_data = gender_data = None
+try:
+    with engine.connect() as connection:
+        # Resident age data
+        age_query = text("""
+            SELECT EXTRACT(YEAR FROM age(date_of_birth)) AS age FROM Resident
+        """)
+        age_data = connection.execute(age_query).fetchall()
 
-# Task Completion Progress Bar
-if tasks_assigned > 0:
-    progress = (tasks_completed / tasks_assigned) * 100
-else:
-    progress = 0
-st.progress(int(progress))
-st.caption(f"Task Completion: {int(progress)}%")
+        # Resident gender data
+        gender_query = text("""
+            SELECT gender, COUNT(*) AS count FROM Resident GROUP BY gender
+        """)
+        gender_data = connection.execute(gender_query).fetchall()
+except Exception as e:
+    st.error(f"Error fetching resident demographic data: {e}")
+    st.stop()
 
-# Upcoming Shifts Section
-st.subheader("Shifts")
-shift_data = fetch_data(
-    f"""
-    SELECT s.start_time, s.end_time, r.name AS resident_name, s.event_type
-    FROM Schedule s
-    LEFT JOIN Resident r ON s.resident_id = r.resident_id
-    WHERE s.event_date = '{today_date}' AND s.event_type = 'Shift'
-    ORDER BY s.start_time
-    """
+# Display the dashboard
+st.markdown(
+    f"<h1 style='text-align: center;'>Welcome, {staff_info['name']}!</h1>",
+    unsafe_allow_html=True,
 )
-if shift_data:
-    shift_df = pd.DataFrame(
-        shift_data, columns=["Start Time", "End Time", "Resident", "Event Type"]
-    )
-    st.dataframe(shift_df, use_container_width=True)
-else:
-    st.info("No shifts scheduled for today.")
+st.markdown("---")
 
-# Resident Age Overview
-st.subheader("Resident Age Overview")
-age_data = fetch_data(
-    "SELECT EXTRACT(YEAR FROM age(date_of_birth)) AS age FROM Resident"
-)
+# Staff Profile Section
+if staff_info:
+    col1, col2 = st.columns([2, 1])
+
+    with col1:
+        # Profile details
+        st.markdown(
+            f"""
+            <div style='background-color: #f9f9f9; padding: 20px; border-radius: 10px; box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);'>
+            <h3 style='color: #333;'>Profile Information</h3>
+            <ul style='line-height: 2; font-size: 18px; list-style-type: none;'>
+                <li><b>Name:</b> {staff_info["name"]}</li>
+                <li><b>Role:</b> {staff_info["role"]}</li>
+                <li><b>Contact Number:</b> {staff_info["contact_number"]}</li>
+                <li><b>Hire Date:</b> {staff_info["hire_date"]}</li>
+            </ul>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    with col2:
+        st.metric("Tasks Assigned Today", tasks_assigned_today)
+
+
+st.markdown("---")
+
+# Resident Demographics
+st.markdown("<h2>Resident Demographics</h2>", unsafe_allow_html=True)
+
+# Age Demographics
 if age_data:
     age_df = pd.DataFrame(age_data, columns=["Age"])
-    age_histogram = px.histogram(
-        age_df, x="Age", nbins=10, title="Resident Age Distribution"
+    age_chart = px.histogram(
+        age_df,
+        x="Age",
+        nbins=10,
+        title="Resident Age Distribution",
+        labels={"Age": "Age (Years)"},
+        template="plotly_white",
     )
-    st.plotly_chart(age_histogram)
+    st.plotly_chart(age_chart)
 else:
-    st.info("No age data available.")
+    st.info("No resident age data available.")
+
+# Gender Distribution
+if gender_data:
+    gender_df = pd.DataFrame(gender_data, columns=["Gender", "Count"])
+    gender_chart = px.pie(
+        gender_df,
+        names="Gender",
+        values="Count",
+        title="Resident Gender Distribution",
+        template="plotly_white",
+    )
+    st.plotly_chart(gender_chart)
+else:
+    st.info("No resident gender data available.")

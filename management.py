@@ -62,10 +62,25 @@ class Management:
         return table_fields.get(self.table_name.lower(), {})
 
     def show_table(self):
-        """Show all records in the specified user table."""
-        query = f"SELECT * FROM {self.table_name};"
-        df = self.conn.query(query, ttl=0)
-        st.dataframe(df, use_container_width=True)
+        """Show all records in the specified user table with names instead of IDs."""
+        # Query to join the Medical_Record table with Resident, Staff, and Medicine tables
+        query = f"""
+        SELECT mr.record_id, r.name AS resident_name, mr.diagnosis, mr.treatment, 
+            s.name AS doctor_name, mr.record_date, m.medicine_name
+        FROM {self.table_name} mr
+        LEFT JOIN Resident r ON mr.resident_id = r.resident_id
+        LEFT JOIN Staff s ON mr.doctor_id = s.staff_id
+        LEFT JOIN Medicine m ON mr.medicine_id = m.medicine_id;
+        """
+
+        try:
+            # Execute the query
+            result = self.conn.query(query, ttl=0)
+
+            # Display the result as a DataFrame
+            st.dataframe(result, use_container_width=True)
+        except Exception as e:
+            st.error(f"Error fetching medical records: {e}")
 
     def create_record(self, **kwargs):
         """Insert a new record into the specified user table."""
