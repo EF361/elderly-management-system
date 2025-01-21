@@ -1,10 +1,18 @@
 import streamlit as st
 from datetime import datetime
 from management import Management
+from contact_number import ContactNumberInput
 
 # Initialize the Resident Manager
 resident_manager = Management(table_name="resident")
 emergency_contact = Management(table_name="resident_emergency_contacts")
+
+resident_contact_input = ContactNumberInput(
+    label="Enter Resident Contact Number", placeholder="01122233345"
+)
+emergency_contact_input = ContactNumberInput(
+    label="Enter Emergency Contact Number", placeholder="01133344455"
+)
 
 # Check if user is logged in
 if "user_name" in st.session_state:
@@ -38,7 +46,7 @@ if option == "Create":
             max_value=datetime(2000, 12, 31),
         )
         gender = st.selectbox("Gender:", options=["Male", "Female"])
-        contact_number = st.text_input("Contact Number:")
+        contact_number = resident_contact_input.render()
         address = st.text_area("Address:")
         username = st.text_input("Username:")
         password = st.text_input("Password:", type="password")
@@ -46,7 +54,7 @@ if option == "Create":
         # Emergency Contact
         contact_name = st.text_input("Emergency Contact Name:")
         relationship = st.text_input("Relationship:")
-        emergency_contact_number = st.text_input("Emergency Contact Number:")
+        emergency_contact_number = emergency_contact_input.render()
 
         # Submit the data
         if st.button("Add Resident"):
@@ -82,7 +90,7 @@ elif option == "Update":
         selected_resident_id = residents[resident_name]
 
         # Fields to update
-        contact_number = st.text_input("Contact Number:", placeholder="Optional")
+        contact_number = resident_contact_input.render()
         address = st.text_area("Address:", placeholder="Optional")
         username = st.text_input("Username:", placeholder="Optional")
         password = st.text_input("Password:", type="password", placeholder="Optional")
@@ -91,8 +99,8 @@ elif option == "Update":
         st.write("Emergency Contact:")
         contact_name = st.text_input("Contact Name:", key="update_contact_name")
         relationship = st.text_input("Relationship:", key="update_relationship")
-        emergency_contact_number = st.text_input(
-            "Contact Number:", key="update_contact_number"
+        emergency_contact_number = emergency_contact.render(
+            key="emergency_contact_number"
         )
         emergency_contact = {
             "contact_name": contact_name,

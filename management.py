@@ -335,9 +335,7 @@ class Management:
                     {"resident_id": resident_id},
                 )
                 conn.commit()
-                st.success(
-                    f"Resident with ID {resident_id} and related records deleted successfully!"
-                )
+                st.success("Resident deleted successfully!")
         except Exception as e:
             st.error(f"Error deleting resident: {e}")
 
@@ -353,7 +351,6 @@ class Management:
                     )
                 )
                 conn.commit()
-                st.success("Orphaned entries in Schedule cleaned up!")
         except Exception as e:
             st.error(f"Error during cleanup: {e}")
 
@@ -368,8 +365,21 @@ class Management:
                     {"staff_id": staff_id},
                 )
                 conn.commit()
-                st.success(
-                    f"Staff with ID {staff_id} and related records deleted successfully!"
-                )
+                st.success("Staff deleted successfully!")
         except Exception as e:
             st.error(f"Error deleting staff: {e}")
+
+    def delete_admin(self, admin_id):
+        """
+        Deletes a admin member and all related records using cascading delete.
+        """
+        try:
+            with self.conn.connect() as conn:
+                conn.execute(
+                    text("DELETE FROM Admin WHERE admin_id = :admin_id"),
+                    {"admin_id": admin_id},
+                )
+                conn.commit()
+                st.success("Admin deleted successfully!")
+        except Exception as e:
+            st.error(f"Error deleting admin: {e}")

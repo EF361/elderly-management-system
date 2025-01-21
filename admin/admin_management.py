@@ -1,7 +1,11 @@
 import streamlit as st
 from management import Management
+from contact_number import ContactNumberInput
 
 admin_manager = Management(table_name="admin")
+contact_input = ContactNumberInput(
+    label="Enter Contact Number", placeholder="01122233345"
+)
 
 # Check if user is logged in, if yes, display title
 if "user_name" in st.session_state:
@@ -39,10 +43,7 @@ if option == "Create":
             type="password",
             placeholder="admin123",
         )
-        contact_number = st.text_input(
-            "Enter Contact Number:",
-            placeholder="011-1234567",
-        )
+        contact_number = contact_input.render()
 
         if st.button("Add Admin"):
             # Check if any required fields are empty
@@ -75,10 +76,8 @@ elif option == "Update":
             type="password",
             placeholder="Optional",
         )
-        contact_number = st.text_input(
-            label="New Contact Number:",
-            placeholder="Optional",
-        )
+
+        contact_number = contact_input.render()
 
         if st.button("Update Admin"):
             try:
@@ -102,4 +101,4 @@ elif option == "Delete":
     with st.expander("Confirm Deletion"):
         st.write(f"Are you sure you want to delete '{selected_name}'?")
         if st.button("Delete Admin"):
-            admin_manager.delete_record(admin_id)
+            admin_manager.delete_admin(admin_id)

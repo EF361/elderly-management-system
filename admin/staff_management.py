@@ -1,8 +1,12 @@
 import streamlit as st
 from management import Management
 from datetime import date
+from contact_number import ContactNumberInput
 
 staff_manager = Management(table_name="staff")
+contact_input = ContactNumberInput(
+    label="Enter Contact Number", placeholder="01122233345"
+)
 
 # Check if user is logged in, if yes, display title
 if "user_name" in st.session_state:
@@ -33,10 +37,7 @@ if option == "Create":
         )
         role = st.selectbox("Select Role:", options=["Doctor", "Nurse", "Caregiver"])
 
-        contact_number = st.text_input(
-            "Enter Contact Number:",
-            placeholder="011-2345678",
-        )
+        contact_number = contact_input.render()
         username = st.text_input(
             "Enter Username:",
             placeholder="jasmine",
@@ -78,10 +79,7 @@ elif option == "Update":
         staff_id = staff_options[selected_name]
 
         # Gather inputs for updatable fields
-        contact_number = st.text_input(
-            "New Contact Number:",
-            placeholder="Optional",
-        )
+        contact_number = contact_input.render()
         username = st.text_input(
             "New Username:",
             placeholder="Optional",
