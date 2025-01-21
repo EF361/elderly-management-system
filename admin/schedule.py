@@ -1,6 +1,6 @@
 import streamlit as st
 from management import Management
-from datetime import datetime, date, time  # noqa: F401
+from datetime import datetime, date, time, timedelta  # noqa: F401
 
 
 class ScheduleManagement(Management):
@@ -21,6 +21,7 @@ class ScheduleManagement(Management):
         # Fetch resident and staff names for dropdowns
         self.residents = self.fetch_options("Resident", "resident_id", "name")
         self.staff = self.fetch_options("Staff", "staff_id", "name")
+        self.staff_roles = self.fetch_staff_roles()  # Fetch roles of staff
         self.schedules = self.fetch_schedule_options()
 
     def fetch_options(self, table_name, id_field, name_field):
@@ -32,6 +33,12 @@ class ScheduleManagement(Management):
             getattr(row, name_field): getattr(row, id_field)
             for row in result.itertuples(index=False)
         }
+
+    def fetch_staff_roles(self):
+        """Fetch staff roles (e.g., doctor, nurse) for each staff member."""
+        query = "SELECT staff_id, role FROM Staff"
+        result = self.conn.query(query)
+        return {row.staff_id: row.role for row in result.itertuples(index=False)}
 
     def fetch_schedule_options(self):
         query = """
@@ -84,14 +91,42 @@ if operation == "Create":
         resident = st.selectbox(
             "Resident", options=list(schedule_manager.residents.keys())
         )
-        staff = st.selectbox("Staff", options=list(schedule_manager.staff.keys()))
-        event_type = st.selectbox(
-            "Event Type",
-            options=["Medical Appointment", "Social Activity", "Shift", "Other"],
+        staff_name = st.selectbox("Staff", options=list(schedule_manager.staff.keys()))
+        staff_id = schedule_manager.staff[staff_name]
+
+        # Fetch staff roles and ensure they are in the correct format (e.g., "Doctor")
+        staff_role = schedule_manager.staff_roles.get(staff_id, "Unknown").lower()
+
+        # Event Type: Restrict selection based on staff role
+        event_type_options = [
+            "Social Activity",
+            "Other",
+        ]  # Default options
+        if staff_role == "doctor":
+            event_type_options.insert(
+                0, "Medical Appointment"
+            )  # Add Medical Appointment for doctors only
+
+        event_type = st.selectbox("Event Type", options=event_type_options)
+
+        # Event Date - restrict to today or future
+        event_date = st.date_input(
+            "Event Date", value=date.today(), min_value=date.today()
         )
-        event_date = st.date_input("Event Date", value=date.today())
-        start_time = st.time_input("Start Time")
-        end_time = st.time_input("End Time")
+
+        # Start Time - restrict to an hour later than the current time
+        current_time = datetime.now()
+        start_time_min = (current_time + timedelta(hours=1)).time()
+        start_time = st.time_input("Start Time", value=start_time_min)
+
+        # End Time - make the end time depend on start time
+        end_time = st.time_input(
+            "End Time",
+            value=(
+                datetime.combine(date.today(), start_time) + timedelta(hours=1)
+            ).time(),
+        )
+
         description = st.text_area(
             "Description",
             placeholder="Exp. Asthma follow-up",
@@ -99,14 +134,18 @@ if operation == "Create":
 
         if st.button("Add Schedule"):
             # Validate inputs
-            if not start_time or not end_time:
+            if event_type == "Medical Appointment" and staff_role != "doctor":
+                st.error("Only doctors can schedule medical appointments.")
+            elif not description.strip():
+                st.error("Description cannot be empty.")
+            elif not start_time or not end_time:
                 st.error("Start time and end time cannot be empty.")
             elif start_time >= end_time:
                 st.error("Start time must be before end time.")
             else:
                 schedule_manager.create_record(
                     resident_id=schedule_manager.residents[resident],
-                    staff_id=schedule_manager.staff[staff],
+                    staff_id=staff_id,
                     event_type=event_type,
                     event_date=event_date,
                     start_time=start_time,
@@ -114,48 +153,71 @@ if operation == "Create":
                     description=description,
                 )
 
-# Fixed Update Code
-elif operation == "Update":
+if operation == "Update":
     with st.expander("Update Schedule"):
+        # Add a unique key for the selected schedule selectbox
         selected_schedule = st.selectbox(
             "Select Schedule to Update:",
             options=list(schedule_manager.schedules.keys()),
+            key="selected_schedule_update",  # Unique key
         )
         schedule_id = schedule_manager.schedules[selected_schedule]
 
-        staff = st.selectbox("Staff", options=list(schedule_manager.staff.keys()))
+        # Add a unique key for the staff selectbox
+        staff_name = st.selectbox(
+            "Staff",
+            options=list(schedule_manager.staff.keys()),
+            key="staff_update",  # Unique key
+        )
+        staff_id = schedule_manager.staff[staff_name]
+
+        # Fetch the staff role again
+        staff_role = schedule_manager.staff_roles.get(staff_id, "Unknown").lower()
+
+        # Event Type: Restrict selection based on staff role
+        event_type_options = [
+            "Social Activity",
+            "Other",
+        ]  # Default options
+        if staff_role == "doctor":
+            event_type_options.insert(
+                0, "Medical Appointment"
+            )  # Add Medical Appointment for doctors only
+
+        # Add a unique key for the event type selectbox
         event_type = st.selectbox(
             "Event Type",
-            options=["Medical Appointment", "Social Activity", "Shift", "Other"],
+            options=event_type_options,
+            key="event_type_update",  # Unique key
         )
-        event_date = st.date_input("Event Date", value=date.today())
-        start_time = st.time_input("Start Time")
-        end_time = st.time_input("End Time")
+
+        # Add unique keys for date and time inputs
+        event_date = st.date_input(
+            "Event Date", value=date.today(), key="event_date_update"
+        )
+        start_time = st.time_input("Start Time", key="start_time_update")
+        end_time = st.time_input("End Time", key="end_time_update")
+
+        # Add a unique key for the description text area
         description = st.text_area(
             "Description",
             placeholder="Optional",
+            key="description_update",  # Unique key
         )
 
         if st.button("Update Schedule"):
             # Validate inputs
-            if not start_time or not end_time:
+            if event_type == "Medical Appointment" and staff_role != "doctor":
+                st.error("Only doctors can update medical appointments.")
+            elif not start_time or not end_time:
                 st.error("Start time and end time cannot be empty.")
             elif start_time >= end_time:
                 st.error("Start time must be before end time.")
-            elif event_type not in [
-                "Medical Appointment",
-                "Social Activity",
-                "Shift",
-                "Other",
-            ]:
-                st.error(
-                    f"Invalid event type: {event_type}. Allowed values are: Medical Appointment, Social Activity, Shift, Other."
-                )
             else:
                 try:
                     schedule_manager.update_record(
                         schedule_id,
-                        staff_id=schedule_manager.staff[staff],
+                        staff_id=staff_id,
                         event_type=event_type,
                         event_date=event_date,
                         start_time=start_time,

@@ -43,6 +43,7 @@ option = st.selectbox("Select Operation", ["Create", "Update", "Delete"])
 
 if option == "Create":
     with st.expander("Create Medicine"):
+        # Input fields for medicine creation
         medicine_name = st.text_input(
             "Medicine Name",
             placeholder="Paracetamol",
@@ -54,19 +55,25 @@ if option == "Create":
         usage = st.text_area(
             "Usage Instructions", placeholder="Fever reduction, Pain relief"
         )
-        stock_quantity = st.number_input("Stock Quantity", min_value=0, step=1)
+        stock_quantity = st.number_input(
+            "Stock Quantity", min_value=1, step=1
+        )  # Ensure at least 1 quantity
 
-        if medicine_name or description or usage or stock_quantity is None:
-            if st.button("Add Medicine"):
-                try:
-                    med_manager.create_record(
-                        medicine_name=medicine_name,
-                        description=description,
-                        usage=usage,
-                        stock_quantity=stock_quantity,
-                    )
-                except Exception as e:
-                    st.error(f"There is an error: {e}")
+        # Validation: Ensure no field is left empty
+        if st.button("Add Medicine"):
+            if not medicine_name or not description or not usage or stock_quantity < 1:
+                st.error(
+                    "All fields must be filled in. Please provide valid inputs and ensure the stock quantity is at least 1."
+                )
+            else:
+                # Create the medicine record
+                med_manager.create_record(
+                    medicine_name=medicine_name,
+                    description=description,
+                    usage=usage,
+                    stock_quantity=stock_quantity,
+                )
+
 
 elif option == "Update":
     with st.expander("Update Medicine"):
@@ -88,7 +95,7 @@ elif option == "Update":
             value="",
             placeholder="Optional",
         )
-        stock_quantity = st.number_input("Stock Quantity", min_value=0, step=1)
+        stock_quantity = st.number_input("Stock Quantity", min_value=1, step=1)
 
         if st.button("Update Medicine"):
             med_manager.update_record(

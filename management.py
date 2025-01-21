@@ -82,6 +82,36 @@ class Management:
         except Exception as e:
             st.error(f"Error fetching medical records: {e}")
 
+    def show_table(self):  # noqa: F811
+        """Show all records dynamically for each table."""
+        if self.table_name.lower() == "resident":
+            query = f"""
+                SELECT resident_id, name, date_of_birth, gender, contact_number, address, username
+                FROM {self.table_name};
+            """
+        elif self.table_name.lower() == "staff":
+            query = f"""
+                SELECT staff_id, name, role, contact_number, username, hire_date
+                FROM {self.table_name};
+            """
+        elif self.table_name.lower() == "admin":
+            query = f"""
+                SELECT admin_id, name, username, contact_number
+                FROM {self.table_name};
+            """
+        elif self.table_name.lower() == "resident_emergency_contacts":
+            query = """
+            SELECT rec.contact_id, r.name AS resident_name, rec.contact_name, rec.relationship, rec.contact_number
+            FROM Resident_Emergency_Contacts rec
+            LEFT JOIN Resident r ON rec.resident_id = r.resident_id;
+            """
+
+        try:
+            result = self.conn.query(query, ttl=0)
+            st.dataframe(result, use_container_width=True)
+        except Exception as e:
+            st.error(f"Error fetching {self.table_name} data: {e}")
+
     def create_record(self, **kwargs):
         """Insert a new record into the specified user table."""
         missing_fields = [
@@ -193,23 +223,23 @@ class Management:
             st.markdown(f"**Emergency Contact Number:** {entry['contact_number']}")
             st.divider()
 
-        def get_table_fields(self):
-            table_fields = {
-                "resident": {
-                    "primary_key": "resident_id",
-                    "fields": [
-                        "name",
-                        "date_of_birth",
-                        "gender",
-                        "contact_number",
-                        "address",
-                        "username",
-                        "password",
-                    ],
-                },
-                # Define for other tables if necessary
-            }
-            return table_fields.get(self.table_name.lower(), {})
+    def get_table_fields(self):
+        table_fields = {
+            "resident": {
+                "primary_key": "resident_id",
+                "fields": [
+                    "name",
+                    "date_of_birth",
+                    "gender",
+                    "contact_number",
+                    "address",
+                    "username",
+                    "password",
+                ],
+            },
+            # Define for other tables if necessary
+        }
+        return table_fields.get(self.table_name.lower(), {})
 
     def create_resident_with_contacts(self, resident_data, emergency_contacts):
         """Insert a resident and their emergency contacts."""
