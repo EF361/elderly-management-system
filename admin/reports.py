@@ -2,6 +2,8 @@ import streamlit as st
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.platypus import Image
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import Paragraph
 from datetime import datetime
 import io
 import psycopg2
@@ -77,11 +79,7 @@ def create_charts(data):
     return bar_chart_buffer, line_chart_buffer
 
 
-# Generate PDF report function
-from tempfile import NamedTemporaryFile
-
-
-# Generate PDF report function
+# Inside the generate_pdf_report function
 def generate_pdf_report(data, entity_type, entity_name, date_range):
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
@@ -133,10 +131,15 @@ def generate_pdf_report(data, entity_type, entity_name, date_range):
     c.setFont("Helvetica-Bold", 10)
     y_position = logo_y_position - 160
     headers = ["Event Date", "Start Time", "End Time", "Event Type", "Description"]
-    col_positions = [50, 120, 190, 260, 400]
+    col_positions = [50, 120, 190, 260, 370]
     for i, header in enumerate(headers):
         c.drawString(col_positions[i], y_position, header)
     y_position -= 15
+
+    # Setup paragraph styles for text wrapping
+    styles = getSampleStyleSheet()
+    style = styles["Normal"]
+    style.wordWrap = "CJK"  # Ensures wrapping at the correct spot
 
     # Table Content
     c.setFont("Helvetica", 10)
@@ -147,6 +150,8 @@ def generate_pdf_report(data, entity_type, entity_name, date_range):
             for i, header in enumerate(headers):
                 c.drawString(col_positions[i], y_position, header)
             y_position -= 15
+
+        # Draw Event Date, Start Time, End Time, and Event Type
         c.drawString(
             col_positions[0], y_position, entry["event_date"].strftime("%Y-%m-%d")
         )
@@ -155,8 +160,21 @@ def generate_pdf_report(data, entity_type, entity_name, date_range):
         )
         c.drawString(col_positions[2], y_position, entry["end_time"].strftime("%H:%M"))
         c.drawString(col_positions[3], y_position, entry["event_type"])
-        c.drawString(col_positions[4], y_position, entry["description"])
-        y_position -= 15
+
+        # For Description, use Paragraph for text wrapping
+        description_text = entry["description"]
+        para = Paragraph(description_text, style)
+        para_width = (
+            width - 50 - col_positions[4]
+        )  # Adjust width for wrapping based on available space
+        para_height = y_position - 15
+
+        # Wrap the paragraph within the available space
+        para.wrap(para_width, height)
+        para.drawOn(c, col_positions[4], para_height)
+
+        # Update y_position based on paragraph height
+        y_position -= para.height
 
     # Add Charts
     c.showPage()

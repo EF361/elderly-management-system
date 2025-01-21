@@ -35,7 +35,7 @@ except Exception as e:
 
 # Display the medical records table
 medical_record_management = Management(table_name="Medical_Record")
-medical_record_management.show_table_medical_record()
+medical_record_management.show_table_schedule()
 
 # Fetch residents and medicines for dropdown selections
 residents = medical_record_management.fetch_options("Resident", "resident_id", "name")

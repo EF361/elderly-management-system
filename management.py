@@ -70,7 +70,7 @@ class Management:
         }
         return table_fields.get(self.table_name.lower(), {})
 
-    def show_table_medical_record(self):
+    def show_table_schedule(self):
         """Show all records in the specified user table with names instead of IDs."""
         # Query to join the Medical_Record table with Resident, Staff, and Medicine tables
         query = f"""
