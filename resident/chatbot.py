@@ -249,7 +249,7 @@ def generate_response(prompt, resident_info):
 # --- MAIN APP LOGIC ---
 if "user_name" in st.session_state:
     user_name = st.session_state["user_name"]
-    st.from django.utils.translation import ugettext_lazy as _(f"{user_name}'s chatbot")
+    st.title(f"{user_name}'s chatbot")
 
     resident_info = get_resident_info(user_name)
     if not resident_info:
