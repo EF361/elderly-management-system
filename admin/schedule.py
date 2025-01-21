@@ -53,7 +53,7 @@ class ScheduleManagement(Management):
             for row in result.itertuples(index=False)
         }
 
-    def show_table(self):
+    def show_table_medical_record(self):
         """Display all schedules in a table."""
         query = """
         SELECT s.schedule_id, r.name AS resident_name, t.name AS staff_name, s.event_type, 
@@ -81,7 +81,7 @@ else:
 
 
 # Display table of schedules
-schedule_manager.show_table()
+schedule_manager.show_table_medical_record()
 
 # Select CRUD operation
 operation = st.selectbox("Select Operation", ["Create", "Update", "Delete"])

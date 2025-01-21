@@ -11,7 +11,7 @@ class MedicineManagement(Management):
             "fields": ["medicine_name", "description", "usage", "stock_quantity"],
         }
 
-    def show_table(self):
+    def show_table_medical_record(self):
         """Display all medicines in a table."""
         query = """
         SELECT m.medicine_id, m.medicine_name, m.description, m.usage, m.stock_quantity
@@ -33,7 +33,7 @@ else:
 
 
 # Display table of medicines
-med_manager.show_table()
+med_manager.show_table_medical_record()
 
 # Fetch medicine for dropdown selections
 medicines = med_manager.fetch_options("Medicine", "medicine_id", "medicine_name")
