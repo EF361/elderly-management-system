@@ -114,4 +114,8 @@ elif option == "Delete":
     with st.expander("Confirm Deletion"):
         st.write(f"Are you sure you want to delete '{medicine_name}'?")
         if st.button("Delete Medicine"):
-            med_manager.delete_record(selected_medicine_id)
+            med_manager.delete_record(
+                table_name="medicine",
+                primary_key_column="medicine_id",
+                user_id=selected_medicine_id,
+            )

@@ -70,7 +70,12 @@ if option == "Create" and user_role == "Doctor":
         doctor_name = st.session_state["user_name"]
         selected_doctor_id = staff.get(doctor_name)
 
-        record_date = st.date_input("Record Date:", value=date.today())
+        record_date = st.date_input(
+            "Record Date:",
+            value=date.today(),
+            min_value=date.today(),
+            max_value=date.today(),
+        )
 
         # Validation: Ensure no field is left empty
         if st.button("Add Medical Record"):
@@ -128,7 +133,12 @@ elif option == "Update" and user_role == "Doctor":
                 doctor_name = st.session_state["user_name"]
                 selected_doctor_id = staff[doctor_name]
 
-                record_date = st.date_input("Record Date:", value=date.today())
+                record_date = st.date_input(
+                    "Record Date:",
+                    value=date.today(),
+                    min_value=date.today(),
+                    max_value=date.today(),
+                )
 
                 if st.button("Update Medical Record"):
                     try:
@@ -178,7 +188,11 @@ elif option == "Delete" and user_role == "Doctor":
                 )
                 if st.button("Delete Record"):
                     try:
-                        medical_record_management.delete_record(selected_record_id)
+                        medical_record_management.delete_record(
+                            table_name="medical_record",
+                            primary_key_column="record_id",
+                            user_id=selected_record_id,
+                        )
                     except Exception as e:
                         st.error(f"There was an error: {e}")
     except Exception as e:

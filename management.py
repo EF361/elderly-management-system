@@ -245,18 +245,19 @@ class Management:
             else:
                 st.error("Record not found.")
 
-    def delete_record(self, table_name, user_id):
+    def delete_record(self, table_name, primary_key_column, user_id):
         """
-        Deletes a record from the specified table and cleans up related records
-        based on database foreign key constraints.
+        Deletes a record from the specified table based on the primary key column.
         """
         try:
             with self.conn.connect() as conn:
-                # Execute the delete query
-                conn.execute(
-                    text(f"DELETE FROM {table_name} WHERE {table_name}_id = :user_id"),
-                    {"user_id": user_id},
+                # Execute the delete query using the provided column name
+                query = text(
+                    f"DELETE FROM {table_name} WHERE {primary_key_column} = :user_id"
                 )
+                conn.execute(query, {"user_id": user_id})
+
+                # Commit the transaction
                 conn.commit()
                 st.success(f"Record successfully deleted from {table_name}!")
         except IntegrityError as e:

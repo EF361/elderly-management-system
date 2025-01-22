@@ -1,5 +1,5 @@
 import streamlit as st
-from datetime import date, time
+from datetime import date, timedelta, time
 from sqlalchemy import create_engine, text
 from management import Management
 
@@ -18,6 +18,7 @@ else:
 # Display the schedule table
 schedule_management = Management(table_name="Schedule")
 schedule_management.show_table()
+tomorrow = date.today() + timedelta(days=1)
 
 # Fetch residents and staff for dropdown selections
 residents = schedule_management.fetch_options("Resident", "resident_id", "name")
@@ -55,7 +56,7 @@ if option == "Create":
             staff_role = None
 
         # Determine allowed event types based on staff role
-        if staff_role in ["Doctor", "Nurse"]:
+        if staff_role in ["Doctor"]:
             event_type = st.selectbox(
                 "Event Type:",
                 ["Medical Appointment", "Social Activity", "Other"],
@@ -66,9 +67,13 @@ if option == "Create":
                 ["Social Activity", "Other"],
             )
 
-        event_date = st.date_input("Event Date:", value=date.today())
+        event_date = st.date_input(
+            "Event Date:",
+            value=tomorrow,
+            min_value=tomorrow,
+        )
         start_time = st.time_input("Start Time:", value=time(9, 0))
-        end_time = st.time_input("End Time:", value=time(17, 0))
+        end_time = st.time_input("End Time:", value=time(10, 0))
         description = st.text_area("Description:", placeholder="Enter event details...")
 
         if st.button("Add Schedule"):
@@ -120,9 +125,13 @@ elif option == "Update":
                 )
                 selected_schedule_id = records_to_display[schedule_to_update]
 
-                event_date = st.date_input("Event Date:", value=date.today())
+                event_date = st.date_input(
+                    "Event Date:",
+                    value=tomorrow,
+                    min_value=tomorrow,
+                )
                 start_time = st.time_input("Start Time:", value=time(9, 0))
-                end_time = st.time_input("End Time:", value=time(17, 0))
+                end_time = st.time_input("End Time:", value=time(10, 0))
                 description = st.text_area("Description:", placeholder="Optional")
 
                 if st.button("Update Schedule"):
@@ -175,7 +184,7 @@ elif option == "Delete":
                 if st.button("Delete Schedule"):
                     try:
                         schedule_management.delete_record(
-                            "schedule", selected_schedule_id
+                            "schedule", "schedule_id", selected_schedule_id
                         )
                     except Exception as e:
                         st.error(f"There was an error: {e}")

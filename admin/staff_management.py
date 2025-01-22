@@ -49,7 +49,9 @@ if option == "Create":
             type="password",
             placeholder="staff123",
         )
-        hire_date = st.date_input("Select Hire Date:", value=date.today())
+        hire_date = st.date_input(
+            "Select Hire Date:", value=date.today(), min_value=date.today()
+        )
 
         if st.button("Add Staff"):
             # Check if any required fields are empty
@@ -81,7 +83,7 @@ elif option == "Update":
         staff_id = staff_options[selected_name]
 
         # Gather inputs for updatable fields
-        contact_number = update_contact_input.render()
+        update_contact_number = update_contact_input.render()
         username = st.text_input(
             "New Username:",
             placeholder="Optional",
@@ -95,7 +97,7 @@ elif option == "Update":
         if st.button("Update Staff"):
             staff_manager.update_record(
                 staff_id,
-                contact_number=contact_number,
+                contact_number=update_contact_number,
                 username=username,
                 password=password,
             )
