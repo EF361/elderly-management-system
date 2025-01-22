@@ -24,6 +24,5 @@ class ContactNumberInput:
             elif len(self.contact_number) < self.min_length:
                 st.error("Contact number is too short.")
             else:
-                st.success("Valid contact number!")
                 return self.contact_number
         return None

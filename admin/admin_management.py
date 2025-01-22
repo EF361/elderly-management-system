@@ -51,6 +51,8 @@ if option == "Create":
             # Check if any required fields are empty
             if not name or not contact_number or not username or not password:
                 st.error("Please fill in all required fields.")
+            elif len(password) < 8:
+                st.error(("Password must be at least 8 characters long."))
             else:
                 admin_manager.create_record(
                     name=name,

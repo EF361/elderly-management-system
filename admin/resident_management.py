@@ -66,6 +66,8 @@ if option == "Create":
                 st.error("Please fill in all required fields")
             elif not contact_name or not emergency_contact_number:
                 st.error("Emergency contact information is required.")
+            elif len(password) < 8:
+                st.error(("Password must be at least 8 characters long."))
             else:
                 resident_data = {
                     "name": name,
@@ -97,6 +99,8 @@ elif option == "Update":
         address = st.text_area("Address:", placeholder="Optional")
         username = st.text_input("Username:", placeholder="Optional")
         password = st.text_input("Password:", type="password", placeholder="Optional")
+        if password and len(password) < 8:
+            st.error("Password must be at least 8 characters long.")
 
         # Update emergency contact
         st.write("Emergency Contact:")

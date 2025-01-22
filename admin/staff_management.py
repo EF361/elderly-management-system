@@ -10,6 +10,7 @@ add_contact_input = ContactNumberInput(
 update_contact_input = ContactNumberInput(
     label="Enter Contact Number", placeholder="01122233345"
 )
+min_characters = 8
 # Check if user is logged in, if yes, display title
 if "user_name" in st.session_state:
     user_name = st.session_state["user_name"]
@@ -49,6 +50,7 @@ if option == "Create":
             type="password",
             placeholder="staff123",
         )
+
         hire_date = st.date_input(
             "Select Hire Date:", value=date.today(), min_value=date.today()
         )
@@ -64,6 +66,8 @@ if option == "Create":
                 or not hire_date
             ):
                 st.error("Please fill in all required fields.")
+            elif len(password) < 8:
+                st.error(("Password must be at least 8 characters long."))
             else:
                 staff_manager.create_record(
                     name=name,
