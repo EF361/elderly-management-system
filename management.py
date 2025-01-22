@@ -116,7 +116,7 @@ class Management:
             """
         elif self.table_name.lower() == "schedule":
             query = """
-            SELECT sch.schedule_id, r.name AS resident_name, s.name AS staff_name, sch.event_type, sch.start_time, sch.end_time, sch.description
+            SELECT sch.schedule_id, r.name AS resident_name, s.name AS staff_name, sch.event_type, sch.event_date, sch.start_time, sch.end_time, sch.description
             FROM schedule sch
             LEFT JOIN Resident r ON sch.resident_id = r.resident_id
             LEFT JOIN Staff s ON sch.staff_id = s.staff_id;

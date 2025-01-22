@@ -99,8 +99,20 @@ elif option == "Delete":
     )
     admin_id = admin_options[selected_name]
 
+    # Assume `current_admin_name` holds the name of the currently logged-in admin
+    current_admin_name = st.session_state["user_name"]  # Replace with your logic
+
     # Confirmation expander
     with st.expander("Confirm Deletion"):
         st.write(f"Are you sure you want to delete '{selected_name}'?")
         if st.button("Delete Admin"):
-            admin_manager.delete_admin(admin_id)
+            if selected_name == current_admin_name:
+                # Delete admin and log out
+                admin_manager.delete_admin(admin_id)
+                st.warning("You have deleted yourself. Logging out...")
+                st.session_state.clear()  # Clear the session state to log out
+                st.stop()  # Stops execution to prevent further actions
+            else:
+                # Delete the selected admin
+                admin_manager.delete_admin(admin_id)
+                st.success(f"Admin '{selected_name}' has been deleted.")
