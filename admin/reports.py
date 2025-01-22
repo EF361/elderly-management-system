@@ -141,17 +141,20 @@ def generate_pdf_report(data, entity_type, entity_name, date_range):
     style = styles["Normal"]
     style.wordWrap = "CJK"  # Ensures wrapping at the correct spot
 
-    # Table Content
     c.setFont("Helvetica", 10)
+    row_height = 30  # Fixed height for each row
+    max_description_length = 100  # Truncate descriptions longer than this
+
     for entry in data:
-        if y_position < 50:  # Create a new page if there is not enough space
+        if y_position < 50:  # If there's not enough space, start a new page
             c.showPage()
             y_position = height - 100
+            # Redraw headers on the new page
             for i, header in enumerate(headers):
                 c.drawString(col_positions[i], y_position, header)
-            y_position -= 15
+            y_position -= row_height
 
-        # Draw Event Date, Start Time, End Time, and Event Type
+        # Draw each column
         c.drawString(
             col_positions[0], y_position, entry["event_date"].strftime("%Y-%m-%d")
         )
@@ -161,20 +164,16 @@ def generate_pdf_report(data, entity_type, entity_name, date_range):
         c.drawString(col_positions[2], y_position, entry["end_time"].strftime("%H:%M"))
         c.drawString(col_positions[3], y_position, entry["event_type"])
 
-        # For Description, use Paragraph for text wrapping
-        description_text = entry["description"]
-        para = Paragraph(description_text, style)
-        para_width = (
-            width - 50 - col_positions[4]
-        )  # Adjust width for wrapping based on available space
-        para_height = y_position - 15
+        # Handle Description with truncation
+        truncated_description = (
+            entry["description"][:max_description_length] + "..."
+            if len(entry["description"]) > max_description_length
+            else entry["description"]
+        )
+        c.drawString(col_positions[4], y_position, truncated_description)
 
-        # Wrap the paragraph within the available space
-        para.wrap(para_width, height)
-        para.drawOn(c, col_positions[4], para_height)
-
-        # Update y_position based on paragraph height
-        y_position -= para.height
+        # Move to the next row
+        y_position -= row_height
 
     # Add Charts
     c.showPage()
