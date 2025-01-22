@@ -4,10 +4,12 @@ from datetime import date
 from contact_number import ContactNumberInput
 
 staff_manager = Management(table_name="staff")
-contact_input = ContactNumberInput(
+add_contact_input = ContactNumberInput(
     label="Enter Contact Number", placeholder="01122233345"
 )
-
+update_contact_input = ContactNumberInput(
+    label="Enter Contact Number", placeholder="01122233345"
+)
 # Check if user is logged in, if yes, display title
 if "user_name" in st.session_state:
     user_name = st.session_state["user_name"]
@@ -37,7 +39,7 @@ if option == "Create":
         )
         role = st.selectbox("Select Role:", options=["Doctor", "Nurse", "Caregiver"])
 
-        contact_number = contact_input.render()
+        contact_number = add_contact_input.render()
         username = st.text_input(
             "Enter Username:",
             placeholder="jasmine",
@@ -79,7 +81,7 @@ elif option == "Update":
         staff_id = staff_options[selected_name]
 
         # Gather inputs for updatable fields
-        contact_number = contact_input.render()
+        contact_number = update_contact_input.render()
         username = st.text_input(
             "New Username:",
             placeholder="Optional",

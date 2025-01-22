@@ -10,6 +10,9 @@ emergency_contact = Management(table_name="resident_emergency_contacts")
 resident_contact_input = ContactNumberInput(
     label="Enter Resident Contact Number", placeholder="01122233345"
 )
+update_resident_contact_input = ContactNumberInput(
+    label="Enter Resident Contact Number", placeholder="01122233345"
+)
 emergency_contact_input = ContactNumberInput(
     label="Enter Emergency Contact Number", placeholder="01133344455"
 )
@@ -90,7 +93,7 @@ elif option == "Update":
         selected_resident_id = residents[resident_name]
 
         # Fields to update
-        contact_number = resident_contact_input.render()
+        contact_number = update_resident_contact_input.render()
         address = st.text_area("Address:", placeholder="Optional")
         username = st.text_input("Username:", placeholder="Optional")
         password = st.text_input("Password:", type="password", placeholder="Optional")

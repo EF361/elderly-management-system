@@ -6,7 +6,9 @@ admin_manager = Management(table_name="admin")
 contact_input = ContactNumberInput(
     label="Enter Contact Number", placeholder="01122233345"
 )
-
+update_contact_input = ContactNumberInput(
+    label="Enter Contact Number", placeholder="01122233345"
+)
 # Check if user is logged in, if yes, display title
 if "user_name" in st.session_state:
     user_name = st.session_state["user_name"]
@@ -77,7 +79,7 @@ elif option == "Update":
             placeholder="Optional",
         )
 
-        contact_number = contact_input.render()
+        contact_number = update_contact_input.render()
 
         if st.button("Update Admin"):
             try:
