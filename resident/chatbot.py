@@ -5,15 +5,12 @@ from datetime import datetime
 import openai
 import difflib
 
-# --- CONFIGURATION ---
 DATABASE_URL = "postgresql://postgres:12345@localhost:5432/elderlymanagement"
 engine = create_engine(DATABASE_URL)
 
-# --- API KEYS ---
 OPENAI_API_KEY = st.secrets["api_keys"]["OPENAI_API_KEY"]
 openai.api_key = OPENAI_API_KEY
 
-# --- COMMONLY USED TERMS ---
 VALID_TERMS = ["schedule", "medication", "admin", "contact"]
 
 
@@ -23,7 +20,6 @@ def suggest_term(input_word):
     return suggestions[0] if suggestions else None
 
 
-# --- DATABASE FUNCTIONS ---
 def get_resident_info(user_name):
     """Fetch resident information from the database."""
     query = text(
@@ -154,13 +150,11 @@ def get_admin_contact():
     return {"name": "Unknown", "contact_number": "123-456-7890"}
 
 
-# --- CHATBOT FUNCTIONS ---
 def generate_response(prompt, resident_info):
     """
     Generate chatbot responses using OpenAI, including schedule and medication details.
     Handle typo corrections for key terms like 'schedule' and 'medication'.
     """
-    # Check for typos in key terms
     words = prompt.lower().split()
     for word in words:
         suggestion = suggest_term(word)
@@ -168,13 +162,11 @@ def generate_response(prompt, resident_info):
             return f"It seems like you meant '{suggestion}'. Could you please type your query again?"
 
     try:
-        # Fetch required details
         admin = get_admin_contact()
         emergency_contacts = get_emergency_contact(resident_info["resident_id"])
         schedule = get_schedule(resident_info["resident_id"])
         medications = get_medication(resident_info["resident_id"])
 
-        # Format emergency contact details
         emergency_contact_info = (
             f"Their emergency contact name is {emergency_contacts[0]['contact_name']}.\n"
             f"Their emergency contact relationship is {emergency_contacts[0]['relationship']}.\n"
@@ -183,7 +175,6 @@ def generate_response(prompt, resident_info):
             else "No emergency contacts found."
         )
 
-        # Format schedule details
         schedule_info = (
             "\n".join(
                 [
@@ -195,14 +186,12 @@ def generate_response(prompt, resident_info):
             else "No events scheduled."
         )
 
-        # Format medication details
         medication_info = (
             "\n".join([f"- {med[0]}: {med[1]} ({med[2]})" for med in medications])
             if medications
             else "No medications recorded."
         )
 
-        # Construct OpenAI messages
         messages = [
             {
                 "role": "system",
@@ -235,7 +224,6 @@ def generate_response(prompt, resident_info):
             {"role": "user", "content": prompt},
         ]
 
-        # Call OpenAI API
         response = openai.ChatCompletion.create(
             model="gpt-4o-mini", messages=messages, max_tokens=200, temperature=0.7
         )
@@ -246,7 +234,6 @@ def generate_response(prompt, resident_info):
         return "I'm having trouble processing your request. Please contact the admin for further assistance."
 
 
-# --- MAIN APP LOGIC ---
 if "user_name" in st.session_state:
     user_name = st.session_state["user_name"]
     st.title(f"{user_name}'s chatbot")
@@ -264,21 +251,17 @@ else:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display chat history
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# User input
 if prompt := st.chat_input("Ask me anything..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Generate response using OpenAI and resident info
     response = generate_response(prompt, resident_info)
 
-    # Display response
     with st.chat_message("assistant"):
         st.markdown(response)
     st.session_state.messages.append({"role": "assistant", "content": response})

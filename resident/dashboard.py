@@ -1,18 +1,15 @@
 import streamlit as st
 from sqlalchemy import create_engine, text
 
-# Database connection setup
 DATABASE_URL = "postgresql://postgres:12345@localhost:5432/elderlymanagement"
 engine = create_engine(DATABASE_URL)
 
-# Check if user is logged in
 if "user_name" in st.session_state:
     user_name = st.session_state["user_name"]
 else:
     st.error("You are not logged in. Please log in to access the dashboard.")
     st.stop()
 
-# Fetch resident data from the database
 resident_info = None
 try:
     with engine.connect() as connection:
@@ -33,7 +30,6 @@ except Exception as e:
     st.error(f"Error fetching resident data: {e}")
     st.stop()
 
-# Display profile information
 if resident_info:
     st.markdown(
         f"<h1 style='text-align: center;'>Welcome, {resident_info['name']}!</h1>",
@@ -41,18 +37,15 @@ if resident_info:
     )
     st.markdown("---")
 
-    # Create columns for layout
     col1, col2 = st.columns([1, 2])
 
     with col1:
-        # Display gender-based profile picture
         if resident_info["gender"] == "Male":
             st.image("images/old_man_logo.png", width=200)
         elif resident_info["gender"] == "Female":
             st.image("images/old_women_logo.png", width=200)
 
     with col2:
-        # Display resident details in an info box
         st.markdown(
             """
             <div style='background-color: #f9f9f9; padding: 20px; border-radius: 10px; box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);'>
@@ -77,7 +70,6 @@ if resident_info:
             unsafe_allow_html=True,
         )
 
-    # Emergency contact information
     st.markdown("---")
     st.markdown(
         """

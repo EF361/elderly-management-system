@@ -4,18 +4,15 @@ import pandas as pd
 import plotly.express as px
 from datetime import date
 
-# Database connection setup
 DATABASE_URL = "postgresql://postgres:12345@localhost:5432/elderlymanagement"
 engine = create_engine(DATABASE_URL)
 
-# Check if user is logged in
 if "user_name" in st.session_state:
     staff_name = st.session_state["user_name"]
 else:
     st.error("You are not logged in. Please log in to access the dashboard.")
     st.stop()
 
-# Fetch staff profile data
 staff_info = None
 try:
     with engine.connect() as connection:
@@ -34,7 +31,6 @@ except Exception as e:
     st.error(f"Error fetching staff data: {e}")
     st.stop()
 
-# Fetch tasks assigned today
 today_date = date.today()
 tasks_assigned_today = 0
 try:
@@ -53,17 +49,14 @@ except Exception as e:
     st.error(f"Error fetching tasks: {e}")
     st.stop()
 
-# Fetch resident demographic data
 age_data = gender_data = None
 try:
     with engine.connect() as connection:
-        # Resident age data
         age_query = text("""
             SELECT EXTRACT(YEAR FROM age(date_of_birth)) AS age FROM Resident
         """)
         age_data = connection.execute(age_query).fetchall()
 
-        # Resident gender data
         gender_query = text("""
             SELECT gender, COUNT(*) AS count FROM Resident GROUP BY gender
         """)
@@ -72,19 +65,16 @@ except Exception as e:
     st.error(f"Error fetching resident demographic data: {e}")
     st.stop()
 
-# Display the dashboard
 st.markdown(
     f"<h1 style='text-align: center;'>Welcome, {staff_info['name']}!</h1>",
     unsafe_allow_html=True,
 )
 st.markdown("---")
 
-# Staff Profile Section
 if staff_info:
     col1, col2 = st.columns([2, 1])
 
     with col1:
-        # Profile details
         st.markdown(
             f"""
             <div style='background-color: #f9f9f9; padding: 20px; border-radius: 10px; box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);'>
@@ -109,7 +99,6 @@ st.markdown("---")
 # Resident Demographics
 st.markdown("<h2>Resident Demographics</h2>", unsafe_allow_html=True)
 
-# Age Demographics
 if age_data:
     age_df = pd.DataFrame(age_data, columns=["Age"])
     age_chart = px.histogram(
@@ -124,7 +113,6 @@ if age_data:
 else:
     st.info("No resident age data available.")
 
-# Gender Distribution
 if gender_data:
     gender_df = pd.DataFrame(gender_data, columns=["Gender", "Count"])
     gender_chart = px.pie(

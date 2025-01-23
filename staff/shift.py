@@ -2,11 +2,9 @@ import streamlit as st
 from sqlalchemy import create_engine, text
 from datetime import date
 
-# Database connection setup
 DATABASE_URL = "postgresql://postgres:12345@localhost:5432/elderlymanagement"
 engine = create_engine(DATABASE_URL)
 
-# Injecting custom CSS styles
 st.markdown(
     """
     <style>
@@ -45,9 +43,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Main container for the design
 with st.container():
-    # Check if user is logged in
     if "user_name" in st.session_state:
         user_name = st.session_state["user_name"]
         st.markdown(
@@ -57,7 +53,6 @@ with st.container():
         st.error("You are not logged in. Please log in to access the dashboard.")
         st.stop()
 
-    # Fetch staff ID based on user_name
     staff_id = None
     try:
         with engine.connect() as connection:
@@ -69,7 +64,7 @@ with st.container():
             result = connection.execute(query, {"name": user_name}).fetchone()
 
             if result:
-                staff_id = result[0]  # Get the staff_id (first element of the tuple)
+                staff_id = result[0]
             else:
                 st.warning(
                     "No data found for the logged-in user. Please verify the name."
@@ -79,11 +74,8 @@ with st.container():
         st.error(f"Error fetching staff ID: {e}")
         st.stop()
 
-    # Schedule display
-    # Date picker for schedule selection, defaulting to today's date
     selected_date = st.date_input("Select a date", value=date.today())
 
-    # Fetch schedule for the selected date
     schedule_data = None
     try:
         with engine.connect() as connection:
@@ -105,7 +97,6 @@ with st.container():
     except Exception as e:
         st.error(f"Error fetching schedule data: {e}")
 
-    # Display schedule data if available
     if schedule_data:
         for event in schedule_data:
             event_type = event[1]
@@ -114,11 +105,9 @@ with st.container():
             end_time = event[4]
             description = event[5]
 
-            # Format start and end times to show only HH:MM
             formatted_start_time = start_time.strftime("%H:%M")
             formatted_end_time = end_time.strftime("%H:%M")
 
-            # Display each event as a card
             st.markdown(
                 f"""
                 <div class='event-card'>
