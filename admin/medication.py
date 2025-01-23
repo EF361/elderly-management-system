@@ -1,6 +1,6 @@
 import streamlit as st
 from management import Management
-from datetime import date  # noqa: F401
+from datetime import date
 
 
 class MedicineManagement(Management):
@@ -23,7 +23,6 @@ class MedicineManagement(Management):
 
 med_manager = MedicineManagement()
 
-# Check if user is logged in, if yes, display title
 if "user_name" in st.session_state:
     user_name = st.session_state["user_name"]
     st.title("Medicine Management")
@@ -32,18 +31,13 @@ else:
     st.stop()
 
 
-# Display table of medicines
 med_manager.show_table_meds()
-
-# Fetch medicine for dropdown selections
 medicines = med_manager.fetch_options("Medicine", "medicine_id", "medicine_name")
 
-# Select CRUD operation
 option = st.selectbox("Select Operation", ["Create", "Update", "Delete"])
 
 if option == "Create":
     with st.expander("Create Medicine"):
-        # Input fields for medicine creation
         medicine_name = st.text_input(
             "Medicine Name",
             placeholder="Paracetamol",
@@ -55,18 +49,14 @@ if option == "Create":
         usage = st.text_area(
             "Usage Instructions", placeholder="Fever reduction, Pain relief"
         )
-        stock_quantity = st.number_input(
-            "Stock Quantity", min_value=1, step=1
-        )  # Ensure at least 1 quantity
+        stock_quantity = st.number_input("Stock Quantity", min_value=1, step=1)
 
-        # Validation: Ensure no field is left empty
         if st.button("Add Medicine"):
             if not medicine_name or not description or not usage or stock_quantity < 1:
                 st.error(
                     "All fields must be filled in. Please provide valid inputs and ensure the stock quantity is at least 1."
                 )
             else:
-                # Create the medicine record
                 med_manager.create_record(
                     medicine_name=medicine_name,
                     description=description,
@@ -77,13 +67,8 @@ if option == "Create":
 
 elif option == "Update":
     with st.expander("Update Medicine"):
-        # Select a medicine by name
         medicine_name = st.selectbox("Select Medicine:", options=list(medicines.keys()))
-
-        # Fetch the selected medicine's details
         selected_medicine_id = medicines[medicine_name]
-
-        # Input fields for updatable data
         description = st.text_area(
             "Description",
             value="",
@@ -105,7 +90,6 @@ elif option == "Update":
             )
 
 elif option == "Delete":
-    # Select a medicine by name for deletion
     medicine_name = st.selectbox(
         "Select Medicine to Delete:", options=list(medicines.keys())
     )

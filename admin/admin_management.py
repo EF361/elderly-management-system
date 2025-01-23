@@ -9,7 +9,7 @@ contact_input = ContactNumberInput(
 update_contact_input = ContactNumberInput(
     label="Enter Contact Number", placeholder="01122233345"
 )
-# Check if user is logged in, if yes, display title
+
 if "user_name" in st.session_state:
     user_name = st.session_state["user_name"]
     st.title(f"{admin_manager.table_name.capitalize()} Management")
@@ -17,13 +17,11 @@ else:
     st.error("You are not logged in. Please log in to access the dashboard.")
     st.stop()
 
-# Display the table
-admin_manager.show_table()
 
-# Fetch existing admin options
+admin_manager.show_table()
 admin_options = admin_manager.fetch_options("Admin", "admin_id", "name")
 
-# Select operation
+
 option = st.selectbox(
     label="Select an operation",
     options=["Create", "Update", "Delete"],
@@ -31,7 +29,6 @@ option = st.selectbox(
 
 if option == "Create":
     with st.expander("Create Admin"):
-        # Gather inputs for creating a new admin
         name = st.text_input(
             "Enter Name:",
             placeholder="Alexander",
@@ -48,7 +45,6 @@ if option == "Create":
         contact_number = contact_input.render()
 
         if st.button("Add Admin"):
-            # Check if any required fields are empty
             if not name or not contact_number or not username or not password:
                 st.error("Please fill in all required fields.")
             elif len(password) < 8:
@@ -64,7 +60,6 @@ if option == "Create":
 
 elif option == "Update":
     with st.expander("Update Admin"):
-        # Select admin by name for updating
         selected_name = st.selectbox(
             "Select Admin to Update:", options=list(admin_options.keys())
         )
@@ -95,16 +90,12 @@ elif option == "Update":
                 st.error(f"There is an error: {e}")
 
 elif option == "Delete":
-    # Select admin by name for deletion
     selected_name = st.selectbox(
         "Select Admin to Delete:", options=list(admin_options.keys())
     )
     admin_id = admin_options[selected_name]
+    current_admin_name = st.session_state["user_name"]
 
-    # Assume `current_admin_name` holds the name of the currently logged-in admin
-    current_admin_name = st.session_state["user_name"]  # Replace with your logic
-
-    # Confirmation expander
     with st.expander("Confirm Deletion"):
         st.write(f"Are you sure you want to delete '{selected_name}'?")
         if st.button("Delete Admin"):
@@ -112,9 +103,8 @@ elif option == "Delete":
                 # Delete admin and log out
                 admin_manager.delete_admin(admin_id)
                 st.warning("You have deleted yourself. Logging out...")
-                st.session_state.clear()  # Clear the session state to log out
-                st.stop()  # Stops execution to prevent further actions
+                st.session_state.clear()
+                st.stop()
             else:
-                # Delete the selected admin
                 admin_manager.delete_admin(admin_id)
                 st.success(f"Admin '{selected_name}' has been deleted.")

@@ -3,7 +3,6 @@ from datetime import datetime
 from management import Management
 from contact_number import ContactNumberInput
 
-# Initialize the Resident Manager
 resident_manager = Management(table_name="resident")
 emergency_contact = Management(table_name="resident_emergency_contacts")
 
@@ -17,7 +16,6 @@ emergency_contact_input = ContactNumberInput(
     label="Enter Emergency Contact Number", placeholder="01133344455"
 )
 
-# Check if user is logged in
 if "user_name" in st.session_state:
     user_name = st.session_state["user_name"]
     st.title("Resident Management")
@@ -30,10 +28,8 @@ resident_manager.show_table()
 st.subheader("Resident Emergency Contact")
 emergency_contact.show_table()
 
-# Fetch residents for dropdown selection
 residents = resident_manager.fetch_options("Resident", "resident_id", "name")
 
-# Operation Selection
 option = st.selectbox(
     label="Select an operation",
     options=["Create", "Update", "Delete"],
@@ -41,7 +37,6 @@ option = st.selectbox(
 
 if option == "Create":
     with st.expander("Create Resident"):
-        # Input fields for new resident
         name = st.text_input("Resident Name:")
         date_of_birth = st.date_input(
             "Date of Birth:",
@@ -54,14 +49,11 @@ if option == "Create":
         username = st.text_input("Username:")
         password = st.text_input("Password:", type="password")
 
-        # Emergency Contact
         contact_name = st.text_input("Emergency Contact Name:")
         relationship = st.text_input("Relationship:")
         emergency_contact_number = emergency_contact_input.render()
 
-        # Submit the data
         if st.button("Add Resident"):
-            # Check if any required fields are empty
             if not name or not contact_number or not username or not password:
                 st.error("Please fill in all required fields")
             elif not contact_name or not emergency_contact_number:
@@ -90,11 +82,9 @@ if option == "Create":
 
 elif option == "Update":
     with st.expander("Update Resident"):
-        # Select a resident to update
         resident_name = st.selectbox("Select Resident:", options=list(residents.keys()))
         selected_resident_id = residents[resident_name]
 
-        # Fields to update
         contact_number = update_resident_contact_input.render()
         address = st.text_area("Address:", placeholder="Optional")
         username = st.text_input("Username:", placeholder="Optional")
@@ -102,7 +92,6 @@ elif option == "Update":
         if password and len(password) < 8:
             st.error("Password must be at least 8 characters long.")
 
-        # Update emergency contact
         st.write("Emergency Contact:")
         contact_name = st.text_input("Contact Name:", key="update_contact_name")
         relationship = st.text_input("Relationship:", key="update_relationship")
@@ -115,7 +104,6 @@ elif option == "Update":
             "contact_number": emergency_contact_number,
         }
 
-        # Submit the update
         if st.button("Update Resident"):
             try:
                 resident_manager.update_record(
@@ -124,9 +112,7 @@ elif option == "Update":
                     address=address,
                     username=username,
                     password=password,
-                    emergency_contacts=[
-                        emergency_contact
-                    ],  # Pass the emergency contact to update
+                    emergency_contacts=[emergency_contact],
                 )
             except Exception as e:
                 st.error(f"Error updating resident: {e}")
@@ -134,13 +120,10 @@ elif option == "Update":
 
 elif option == "Delete":
     with st.expander("Delete Resident"):
-        # Select a resident to delete
         resident_name = st.selectbox(
             "Select Resident to Delete:", options=list(residents.keys())
         )
         selected_resident_id = residents[resident_name]
-
-        # Confirm deletion
         st.write(f"Are you sure you want to delete '{resident_name}'?")
         if st.button("Delete Resident"):
             try:

@@ -11,7 +11,6 @@ update_contact_input = ContactNumberInput(
     label="Enter Contact Number", placeholder="01122233345"
 )
 min_characters = 8
-# Check if user is logged in, if yes, display title
 if "user_name" in st.session_state:
     user_name = st.session_state["user_name"]
     st.title("Staff Management")
@@ -19,13 +18,10 @@ else:
     st.error("You are not logged in. Please log in to access the dashboard.")
     st.stop()
 
-# Display the table
 staff_manager.show_table()
 
-# Fetch existing staff options
 staff_options = staff_manager.fetch_options("Staff", "staff_id", "name")
 
-# Select operation
 option = st.selectbox(
     label="Select an operation",
     options=["Create", "Update", "Delete"],
@@ -33,7 +29,6 @@ option = st.selectbox(
 
 if option == "Create":
     with st.expander("Create Staff"):
-        # Gather inputs for creating a new staff member
         name = st.text_input(
             "Enter Name:",
             placeholder="Exp. Jasmine",
@@ -56,7 +51,6 @@ if option == "Create":
         )
 
         if st.button("Add Staff"):
-            # Check if any required fields are empty
             if (
                 not name
                 or not role
@@ -80,13 +74,11 @@ if option == "Create":
 
 elif option == "Update":
     with st.expander("Update Staff"):
-        # Select staff by name for updating
         selected_name = st.selectbox(
             "Select Staff to Update:", options=list(staff_options.keys())
         )
         staff_id = staff_options[selected_name]
 
-        # Gather inputs for updatable fields
         update_contact_number = update_contact_input.render()
         username = st.text_input(
             "New Username:",
@@ -107,7 +99,6 @@ elif option == "Update":
             )
 
 elif option == "Delete":
-    # Select staff by name for deletion
     selected_name = st.selectbox(
         "Select Staff to Delete:", options=list(staff_options.keys())
     )

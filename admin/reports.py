@@ -28,9 +28,9 @@ def connect_to_db():
 def get_residents_staff():
     conn = connect_to_db()
     cur = conn.cursor()
-    cur.execute("SELECT resident_id, name FROM Resident")  # Fetch residents
+    cur.execute("SELECT resident_id, name FROM Resident")
     residents = cur.fetchall()
-    cur.execute("SELECT staff_id, name FROM Staff")  # Fetch staff
+    cur.execute("SELECT staff_id, name FROM Staff")
     staff = cur.fetchall()
     conn.close()
     return residents, staff
@@ -38,18 +38,17 @@ def get_residents_staff():
 
 # Function to create and save charts as images
 def create_charts(data):
-    # Create a bar chart for event frequency by type
     event_types = [entry["event_type"] for entry in data]
     frequencies = {event: event_types.count(event) for event in set(event_types)}
 
     bar_chart_buffer = BytesIO()
-    plt.figure(figsize=(8, 4))  # Adjust the size for better readability
+    plt.figure(figsize=(8, 4))
     plt.bar(frequencies.keys(), frequencies.values(), color="skyblue")
     plt.xlabel("Event Type")
     plt.ylabel("Frequency")
     plt.title("Event Frequency by Type")
-    plt.xticks(rotation=45, ha="right")  # Rotate labels for better fit
-    plt.tight_layout()  # Adjust layout to prevent cutting off labels
+    plt.xticks(rotation=45, ha="right")
+    plt.tight_layout()
     plt.savefig(
         bar_chart_buffer, format="PNG", bbox_inches="tight"
     )  # Ensure nothing is cut
@@ -62,18 +61,16 @@ def create_charts(data):
     }
 
     line_chart_buffer = BytesIO()
-    plt.figure(figsize=(8, 4))  # Adjust the size for better readability
+    plt.figure(figsize=(8, 4))
     plt.plot(
         date_frequencies.keys(), date_frequencies.values(), marker="o", color="orange"
     )
     plt.xlabel("Date")
     plt.ylabel("Number of Events")
     plt.title("Events Over Time")
-    plt.xticks(rotation=45, ha="right")  # Rotate labels for better fit
-    plt.tight_layout()  # Adjust layout to prevent cutting off labels
-    plt.savefig(
-        line_chart_buffer, format="PNG", bbox_inches="tight"
-    )  # Ensure nothing is cut
+    plt.xticks(rotation=45, ha="right")
+    plt.tight_layout()
+    plt.savefig(line_chart_buffer, format="PNG", bbox_inches="tight")
     line_chart_buffer.seek(0)
 
     return bar_chart_buffer, line_chart_buffer
@@ -85,23 +82,20 @@ def generate_pdf_report(data, entity_type, entity_name, date_range):
     c = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
 
-    # Add gap before the logo
-    logo_y_position = height - 150  # Adjusted for gap
+    logo_y_position = height - 150
     logo_width, logo_height = 100, 100
 
-    # Draw rounded rectangle for logo border
     border_padding = 10
-    c.setStrokeColorRGB(0, 0, 0)  # Black border
+    c.setStrokeColorRGB(0, 0, 0)
     c.setLineWidth(1)
     c.roundRect(
         width / 2 - (logo_width / 2) - border_padding,
         logo_y_position - border_padding,
         logo_width + (border_padding * 2),
         logo_height + (border_padding * 2),
-        10,  # Border radius
+        10,
     )
 
-    # Add the logo inside the rounded border
     logo_path = "images/logo.png"
     c.drawImage(
         logo_path,
@@ -136,25 +130,22 @@ def generate_pdf_report(data, entity_type, entity_name, date_range):
         c.drawString(col_positions[i], y_position, header)
     y_position -= 15
 
-    # Setup paragraph styles for text wrapping
     styles = getSampleStyleSheet()
     style = styles["Normal"]
-    style.wordWrap = "CJK"  # Ensures wrapping at the correct spot
+    style.wordWrap = "CJK"
 
     c.setFont("Helvetica", 10)
-    row_height = 30  # Fixed height for each row
-    max_description_length = 100  # Truncate descriptions longer than this
+    row_height = 30
+    max_description_length = 100
 
     for entry in data:
-        if y_position < 50:  # If there's not enough space, start a new page
+        if y_position < 50:
             c.showPage()
             y_position = height - 100
-            # Redraw headers on the new page
             for i, header in enumerate(headers):
                 c.drawString(col_positions[i], y_position, header)
             y_position -= row_height
 
-        # Draw each column
         c.drawString(
             col_positions[0], y_position, entry["event_date"].strftime("%Y-%m-%d")
         )
@@ -164,22 +155,17 @@ def generate_pdf_report(data, entity_type, entity_name, date_range):
         c.drawString(col_positions[2], y_position, entry["end_time"].strftime("%H:%M"))
         c.drawString(col_positions[3], y_position, entry["event_type"])
 
-        # Handle Description with truncation
         truncated_description = (
             entry["description"][:max_description_length] + "..."
             if len(entry["description"]) > max_description_length
             else entry["description"]
         )
         c.drawString(col_positions[4], y_position, truncated_description)
-
-        # Move to the next row
         y_position -= row_height
 
-    # Add Charts
     c.showPage()
     bar_chart, line_chart = create_charts(data)
 
-    # Save charts as temporary files
     with NamedTemporaryFile(delete=False, suffix=".png") as temp_bar_chart:
         temp_bar_chart.write(bar_chart.getvalue())
         bar_chart_path = temp_bar_chart.name
@@ -188,12 +174,10 @@ def generate_pdf_report(data, entity_type, entity_name, date_range):
         temp_line_chart.write(line_chart.getvalue())
         line_chart_path = temp_line_chart.name
 
-    # Constants for margins and available space
     x_margin = 50
-    chart_width = width - 2 * x_margin  # Full width minus margins
-    chart_max_height = 200  # Max height for charts to prevent overlapping
+    chart_width = width - 2 * x_margin
+    chart_max_height = 200
 
-    # Add the bar chart to the PDF
     c.drawImage(
         bar_chart_path,
         x_margin,
@@ -205,7 +189,6 @@ def generate_pdf_report(data, entity_type, entity_name, date_range):
     )
     c.drawString(x_margin, height - 320, "Figure 1: Event Frequency by Type")
 
-    # Add the line chart to the PDF
     c.drawImage(
         line_chart_path,
         x_margin,
@@ -217,14 +200,12 @@ def generate_pdf_report(data, entity_type, entity_name, date_range):
     )
     c.drawString(x_margin, height - 570, "Figure 2: Events Over Time")
 
-    # Save and clean up
     c.save()
     buffer.seek(0)
 
     return buffer
 
 
-# Streamlit app layout
 st.title("Report Generation")
 
 st.write("### Report Criteria")
@@ -233,7 +214,6 @@ date_range = st.date_input(
 )
 entity_type = st.selectbox("Select Type", ["Resident", "Staff"])
 
-# Fetch and display relevant selection options
 residents, staff = get_residents_staff()
 if entity_type == "Resident":
     selected_entity = st.selectbox(
@@ -246,7 +226,6 @@ if st.button("Generate Report"):
     conn = connect_to_db()
     cur = conn.cursor()
 
-    # Query data
     if entity_type == "Resident":
         query = """
             SELECT event_date, start_time, end_time, event_type, description
@@ -265,7 +244,6 @@ if st.button("Generate Report"):
     results = cur.fetchall()
     conn.close()
 
-    # Prepare data
     report_data = [
         {
             "event_date": row[0],
@@ -277,12 +255,10 @@ if st.button("Generate Report"):
         for row in results
     ]
 
-    # Generate PDF
     pdf_buffer = generate_pdf_report(
         report_data, entity_type, selected_entity[1], date_range
     )
 
-    # Download button
     st.download_button(
         label="Download Report",
         data=pdf_buffer,
