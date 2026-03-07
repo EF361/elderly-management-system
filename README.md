@@ -108,7 +108,3 @@ streamlit run app.py
 └── styles.css                   # Custom UI styling
 
 ```
-
-```
-
-```
