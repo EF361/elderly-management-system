@@ -1,154 +1,80 @@
-# Elderly Management System 🚀  
-![Python](https://img.shields.io/badge/Python-3.9%2B-blue)  
-![Streamlit](https://img.shields.io/badge/Streamlit-0.90%2B-red)  
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-%3E%3D13-blue)  
-![License](https://img.shields.io/badge/License-MIT-green)  
+# Elderly Management System  
+![Python](https://img.shields.io/badge/Python-3.10-blue) ![Streamlit](https://img.shields.io/badge/Streamlit-1.6.0-red) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13-blue) ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0-green) ![Plotly](https://img.shields.io/badge/Plotly-5.6.0-orange) ![OpenAI](https://img.shields.io/badge/OpenAI-API-yellow)
+
+## Business Value  
+The **Elderly Management System** is a streamlined software solution for enhancing efficiency and quality of care within elderly care facilities.  
+- **For Staff & Administrators**: Automate daily operations like resident monitoring, health tracking, task assignments, and more.  
+- **For Residents**: Personalize recommendations for health plans, activities, and diets tailored by AI.  
+- **For Continuous Improvement**: Integrated user feedback loop ensures that the AI provides smarter, more efficient recommendations over time.  
+
+Ultimately, it enhances facility workflows and prioritizes well-being for those who matter the most, all while reducing administrative overhead.
 
 ---
 
-## 🏥 Business Value  
-
-Managing an elderly care facility is both challenging and delicate. Staff are overwhelmed with paperwork and manual coordination, leaving less time for what matters most: **personalized care**.  
-
-**Elderly Management System** brings automation and AI to the rescue by providing a streamlined platform where administrators can:  
-- Manage resident profiles and health history.  
-- Track inventory like medications and supplies.  
-- Generate real-time reports for staff productivity and resident wellbeing.  
-- Use AI to generate proactive care suggestions based on health trends.  
-
-This allows caregivers to save time on repetitive tasks and focus on meaningful care.  
+## Tech Stack  
+- **Backend**: Python + SQLAlchemy  
+- **Frontend**: Streamlit for seamless, interactive user interfaces  
+- **Database**: PostgreSQL for scalable, reliable data storage  
+- **AI Integration**: OpenAI API for personalized resident recommendations  
+- **Data Visualization**: Plotly for real-time insights and analytics  
 
 ---
 
-## 💻 Tech Stack  
+## How It Works  
 
-The system is built using modern technologies to ensure scalability, reliability, and extensibility:  
+### 1. **Resident Management**  
+Admins can easily add, update, or delete resident data (e.g., name, medical history, dietary preferences). All records are stored securely using PostgreSQL with SQLAlchemy as the ORM.  
 
-| Tool | Purpose |  
-|------|---------|  
-| **Streamlit** | Interactive front-end for administrators and staff to access insights. |  
-| **PostgreSQL** | Robust database backend for securely storing all resident and facility data. |  
-| **SQLAlchemy** | ORM for seamless interaction with the database. |  
-| **Plotly** | Advanced data visualization for generating interactive reports. |  
-| **OpenAI API** | Powers the AI module for health recommendations and staff efficiency insights. |  
+### 2. **AI-Powered Personalization**  
+Through OpenAI's API, the system generates personalized health and activity recommendations for each resident. Inputs like health details and preferences are processed to create adaptive care suggestions.  
 
----
+### 3. **Data Reporting and Monitoring**  
+Interactive dashboards built with Plotly visualize statistics like health trends, attendance patterns, and staff performance. This promotes informed decision-making.  
 
-## 🚀 How It Works  
+### 4. **User Feedback Integration**  
+- Residents and staff can now submit structured feedback directly on AI-generated recommendations.  
+- Feedback is logged, analyzed, and used to retrain the recommendation model periodically, ensuring continuous improvement over time.  
 
-1. **Resident and Facility Data Input:**  
-   Administrators or staff input resident details, health history, and facility-specific data through a secure web interface built with Streamlit.  
-
-2. **Automated Analytics and Insights Generation:**  
-   Resident health and activity data are processed in real time using PostgreSQL and SQLAlchemy. Interactive dashboards powered by Plotly offer actionable charts and reports.  
-
-3. **AI-Powered Suggestions:**  
-   Leveraging the OpenAI API, the system provides personalized recommendations for individual residents (e.g., health escalations, mobility assistance, or meal scheduling improvements).  
-
-4. **Inventory and Staff Tracking:**  
-   Facility-wide inventory and staff assignments are monitored, logged, and optimized for efficiency, preventing shortages and overwork.  
+### 5. **Scalability and Security**  
+Built with enterprise-grade tools (PostgreSQL + SQLAlchemy), this system is designed to handle increasing user loads without compromising performance or security.
 
 ---
 
-## 📊 Performance Benchmarks  
-
-The system is engineered for efficiency at scale. Testing was conducted using a dataset representing **500 residents, 50 staff users, and 100MB of telemetry data**. Below are the key metrics achieved:  
-
-| Metric                                | Performance                                                                                |  
-|---------------------------------------|------------------------------------------------------------------------------------------|  
-| **Resident Query Response Time**      | <120ms on average (tested with PostgreSQL indices and SQLAlchemy optimizations).           |  
-| **Report Generation Time**            | ~3 seconds for complex reports visualized with Plotly.                                    |  
-| **AI Recommendation Response Time**   | ~5 seconds per query (dependent on OpenAI API).                                           |  
-| **Concurrent User Support**           | Flawlessly supports 200+ simultaneous users without latency, tested using Apache JMeter.  |  
-
----
-
-## 📂 Repository Structure  
-
-```plaintext
-elderly-management-system/  
-│  
-├── app/  
-│   ├── main.py                    # Streamlit application entry point.  
-│   ├── dashboards/                # Interactive Plotly dashboards for analytics.  
-│   └── components/                # Re-usable front-end components (tables, forms, etc.).  
-│  
-├── database/  
-│   ├── models.py                  # SQLAlchemy models for PostgreSQL.  
-│   ├── queries/                   # Includes optimized SQL templates.  
-│   └── seed_data/                 # Sample data for testing and development.  
-│  
-├── ai_module/  
-│   ├── openai_client.py           # Wrapper for accessing the OpenAI API.  
-│   └── recommendation_engine.py   # Logic for generating proactive care recommendations.  
-│  
-├── benchmarks/  
-│   ├── performance_tests.md       # Detailed benchmark results and methodologies.  
-│   └── jmeter_tests/              # Scripts and configurations for load testing.  
-│  
-└── README.md                      # You're here!  
-```  
-
----
-
-## 🎯 Getting Started  
-
-### Prerequisites  
-1. Python 3.9+  
-2. PostgreSQL 13+  
-3. OpenAI API Key (for AI features).  
-
-### Installation  
-
+## Getting Started  
 1. Clone the repository:  
-   ```bash  
-   git clone https://github.com/your-username/elderly-management-system.git  
-   cd elderly-management-system  
+   ```bash
+   git clone https://github.com/EF361/elderly-management-system.git
+   cd elderly-management-system
    ```  
 
 2. Install dependencies:  
-   ```bash  
-   pip install -r requirements.txt  
+   ```bash
+   pip install -r requirements.txt
    ```  
 
-3. Configure the Database:  
-   Update **database/config.py** with your PostgreSQL credentials.  
+3. Set up your `.env` file with the following environment variables:  
+   ```bash
+   DATABASE_URL=your_postgresql_database_url
+   OPENAI_API_KEY=your_openai_api_key
+   ```  
 
-4. Run the Application:  
-   ```bash  
-   streamlit run app/main.py  
+4. Start the Streamlit App:  
+   ```bash
+   streamlit run app.py
    ```  
 
 ---
 
-## 🔒 Security  
-
-This project implements industry-standard practices for secure data handling, including:  
-- Encrypted database connections (SSL).  
-- Sanitized input to prevent SQL injection.  
-- User authentication with role-based access control (RBAC).  
+## Contributing  
+We welcome contributions to enhance the **Elderly Management System**!  
+- Report bugs or suggest features via `Issues`.  
+- Submit a pull request for proposed improvements.  
 
 ---
 
-## 🌟 Contribution  
+## License  
+This project is licensed under the MIT License. See the `LICENSE` file for more details.  
 
-We welcome contributions to enhance the system! To get started:  
-- Fork the repository.  
-- Create a feature branch.  
-- Submit a pull request with detailed documentation of your changes.  
+--- 
 
-Please refer to our [CONTRIBUTING.md](CONTRIBUTING.md) for more details.  
-
----
-
-## 📄 License  
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.  
-
----  
-
-## ✉️ Contact  
-
-For inquiries or support, please contact:  
-- Email: support@elderly-management-system.com  
-- LinkedIn: [Your Name](https://linkedin.com/in/your-profile)
+Built with ❤️ for smarter and more compassionate elderly care solutions.
