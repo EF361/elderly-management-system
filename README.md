@@ -1,114 +1,94 @@
-# Elderly Management System ![Python](https://img.shields.io/badge/Python-3.10-blue) ![Streamlit](https://img.shields.io/badge/Streamlit-%2303244d) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-%23336791) ![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen) ![Demo](https://img.shields.io/badge/Demo-Live--Preview-purple)
+# Elderly Management System
+
+![Python](https://img.shields.io/badge/Python-3.10-blue)
+![Streamlit](https://img.shields.io/badge/Streamlit-v1.25-red)
+![Flask](https://img.shields.io/badge/Flask-Web%20API-success)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-316192)
+![Docker](https://img.shields.io/badge/Docker-Compose-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
 
 ## Executive Summary
-The **Elderly Management System** is a secure and scalable platform designed to manage elderly care operations, such as resident records, healthcare planning, and real-time notifications. The solution prioritizes data security, compliance, and usability, leveraging AI-driven recommendations (via the OpenAI API) to enhance caregiving outcomes.
 
----
+The **Elderly Management System** is a security-conscious platform developed to enhance care coordination for elderly residents through robust role-based access control (RBAC), encrypted sensitive data handling, and non-clinical AI-assisted recommendations. Designed for care facilities, the platform emphasizes compliance, security best practices, and audit transparency.
 
 ## Key Features
-- **Role-Based Access Control (RBAC):** Enforces strict user permissions for sensitive operations server-side, validated through integration tests.
-- **AI-Assisted Recommendations:** Safely integrates with OpenAI API to provide non-clinical healthcare recommendations with human oversight and auditability.
-- **Secure Data Handling:** Supports AES-256 encryption, sensitive logging policies, and full auditability with documented retention and backup strategies.
-- **Streamlined Frontend:** Intuitive, responsive user interface built with Streamlit for real-time caregiving updates.
-- **Compliance-Ready Architecture:** Designed with compliance in mind, featuring secret management, session security, and network isolation.
-- **Dockerized Infrastructure:** Fully containerized deployment with Docker Compose, database schema migrations, and sanitized seed data for local reproducibility.
-- **Extensive Testing:** Authorization and integration tests ensure robust controls for sensitive data access.
 
----
+- **Role-Based Access Control (RBAC):** Enforces fine-grained object-level and action-level authorization, guided by backend rules in Flask. UI visibility is not relied upon for security.
+- **Secure Data Management:** Uses AES-256 authenticated encryption with key rotation to safeguard sensitive resident data.
+- **Compliant AI Assistance:** Employs OpenAI API for non-clinical care recommendations, ensuring personal data is redacted and provenance is recorded. All consequential actions require human confirmation.
+- **Comprehensive Threat Mitigation:** Extensive testing for horizontal privilege escalation, CSRF, injection vulnerabilities, insecure direct object references, and more.
+- **Dockerized Microservices:** Manages backend and frontend services with **Docker Compose**, enabling consistent deployments with pinned dependency versions and hardened container images.
+- **Encrypted Backups:** Database backups are encrypted and comply with defined retention schedules for disaster recovery scenarios.
+- **Auditing & Logs Protection:** Implements audit logging to track critical events while ensuring that sensitive data remains excluded from logs.
+- **Production-Grade Security:** Includes session isolation, CSRF tokens, and secure secret management procedures documented explicitly for production.
+- **Real-Time Alerts:** Supports proactive notification systems for timely updates to caregivers and staff.
 
 ## Architecture & Workflow
-```mermaid
-graph TD
-    A[Frontend (Streamlit)] -->|Requests| B[API Layer (Flask)]
-    B -->|Secure Queries| C[PostgreSQL Database]
-    B -->|Fetch Recommendations| D[OpenAI API]
-    C -->|Trigger Events| E[Notification System]
-    D -->|Validated Response| B
-    E --> B
-    
-    classDef secure fill:#f9f,stroke:#333,stroke-width:4px;
-    B, C, E class secure
-```
-**Explanation of Workflow**: 
-1. User interacts with the Streamlit-based frontend. 
-2. API Layer handles input validation, access control, and secure calls to the database and OpenAI API.
-3. PostgreSQL stores encrypted sensitive data and triggers actionable notifications.
-4. AI-assisted recommendations are treated as non-clinical suggestions and undergo human review.
-5. Notifications and reports are securely propagated to caregivers in real time.
 
----
+The architecture comprises modular services for seamless integration, driven by strict security and compliance standards.
+
+```mermaid
+flowchart TD
+    Browser[Browser: Streamlit UI] -->|User requests| Nginx[Nginx Reverse Proxy]
+    Nginx --> Flask[Flask API]
+    Flask -->|Query Processing| PostgreSQL[(PostgreSQL Database)]
+    Flask -->|Secure AI Interaction| OpenAI[OpenAI API]
+    Flask -->|Audit Logging| Logs[Encrypted Audit Log]
+    Docker[Docker Compose] -->|Container Management| Flask
+    Docker --> PostgreSQL
+    Docker --> Nginx
+```
+
+1. **Streamlit UI:** Frontend for interacting with the system (e.g., caregiver dashboards, resident profiles).
+2. **Nginx:** Provides reverse proxy functionality and enforces HTTPS/TLS.
+3. **Flask API:** Handles application logic, RBAC enforcement, and secure integration with OpenAI for recommendations.
+4. **PostgreSQL:** Stores resident data, audit logs, and system configurations with strict encryption.
+5. **Docker Compose:** Orchestrates all services with pinned images for stability and consistency.
 
 ## Tech Stack & Tools Breakdown
-**Languages & Frameworks**
-- **Python 3.10**: Core language for both backend and AI integrations.
-- **Streamlit**: Frontend development framework for rapid UI prototyping.
-- **Flask**: API development and middleware for RBAC and encryption.
 
-**Data Storage & Security**
-- **PostgreSQL**: Primary relational database with schema migrations support.
-- **AES-256 Encryption**: Used for securing sensitive data, including healthcare records.
-
-**Integrations**
-- **OpenAI API**: Delivers AI-enhanced care suggestions, logged for provenance and validation.
-
-**Infrastructure**
-- **Docker Compose**: Standardized local and production environments.
-- **Nginx**: Reverse proxy for secure API routing and network isolation.
-
----
+- **Backend:** Flask (Python 3.10) for robust API handling and business logic
+- **Frontend:** Streamlit for rapid prototyping and caregiver-facing interfaces
+- **Database:** PostgreSQL with encryption-at-rest and backups
+- **AI:** OpenAI API for generating actionable insights (non-clinical use only)
+- **Orchestration:** Docker Compose and Nginx for seamless deployment and scaling
+- **Security:** AES-256 encryption, CSRF tokens, session isolation, authenticated encryption, and threat-mitigating tests
+- **Automation & CI:** Dependency scanning, container hardening, and security compliance built into pipelines
 
 ## Quickstart / Installation
-Follow these steps to deploy the Elderly Management System locally:
 
-### Prerequisites
-- Install **Docker** and **Docker Compose**.
-- Ensure Python 3.10+ and PostgreSQL are set up (if not using Docker).
+Clone the repository and follow these steps to get the platform running:
 
-### Steps
 ```bash
-# 1. Clone the Repository
+# 1. Clone the repository
 git clone https://github.com/EF361/elderly-management-system.git
 cd elderly-management-system
 
-# 2. Set Environment Variables
-cp .env.example .env
-# Update .env with PostgreSQL credentials, OpenAI API key, and other secrets.
+# 2. Install Python dependencies
+python3.10 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 
-# 3. Build and Start Services
+# 3. Set up environment variables
+cp .env.example .env
+# Configure environment variables (follow documentation guidance)
+
+# 4. Start services using Docker Compose
 docker-compose up --build
 
-# 4. Apply Database Migrations
-docker exec -it elderly_management_backend bash -c "flask db upgrade"
-
-# 5. Seed Database with Sanitized Test Data
-docker exec -it elderly_management_backend bash -c "python scripts/seed_data.py"
-
-# 6. Access the Application
-# Open http://localhost:8501 in your browser to access the frontend.
-
+# 5. Access the application
+# Visit Streamlit at http://localhost:8501
+# Backend API available at http://localhost:8000
 ```
 
----
+## Compliance Checklist
 
-## Security & Compliance Highlights
-- **RBAC Enforcement**: Ensures sensitive operations like resident updates adhere to role-based permissions.
-- **Audit Logging**: All sensitive operations are logged with identifiers for traceability.
-- **Data Retention & Backup**: Backup jobs configured via Docker volumes; compliant with GDPR-like retention rules.
-- **Encryption and Secret Management**: All sensitive fields are encrypted at rest (AES-256), and runtime secrets are injected via environment variables.
-- **Threat Model**: Verifies controls for injection attacks, session hijacking, and unauthorized data access.
+To ensure legal compliance and data security standards, this platform adheres to:
 
-Links to Evidence & Documentation:
-- **RBAC Tests**: [tests/rbac.test.py](tests/rbac.test.py)
-- **Schema & Database Migrations**: [migrations/](migrations/)
-- **Backup Strategy**: [docs/backup.md](docs/backup.md)
-- **Audit Logging**: [docs/audit-log-policy.md](docs/audit-log-policy.md)
-
----
-
-## Developer Notes
-This repository was built and architected by **Alicia Goh (EF361)**, leveraging her expertise in AI-enhanced software engineering for operationally sensitive environments. Alicia's focus on compliance-grade solutions, hardened security, and developer-friendly ergonomics positions this system for scalable growth in both healthcare and eldercare industries.
-
----
-
-## License
-The project is licensed under the **MIT License**. See [LICENSE](LICENSE) for details.
+- **Data Classifications:** Resident data is classified by sensitivity with corresponding encryption and access rules.
+- **Threat Model:** Annually audited to cover privilege escalation, injection attacks, and other common vectors.
+- **Retention Policy:** Enforces data retention periods for backups and logs, with policies for secure deletion.
+- **Consent Model:** Captures user consent transparently at onboarding and before AI API use.
+- **Breach Procedures:** Follows jurisdiction-specific notification timelines for security breaches, with forensic audit logs in place.
+  
+Contributions and feedback are welcomed, particularly in security testing and compliance improvement. Let's build a safer platform for elder care!
