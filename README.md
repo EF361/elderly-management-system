@@ -1,88 +1,114 @@
-# Elderly Management System ![Python](https://img.shields.io/badge/Python-v3.10-blue) ![Streamlit](https://img.shields.io/badge/Streamlit-v1.xx-brightgreen) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-%3E=13-blue) ![License](https://img.shields.io/badge/License-MIT-success) ![Demo](https://img.shields.io/badge/Demo-Live-orange)
+# Elderly Management System ![Python](https://img.shields.io/badge/Python-3.10-blue) ![Streamlit](https://img.shields.io/badge/Streamlit-%2303244d) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-%23336791) ![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen) ![Demo](https://img.shields.io/badge/Demo-Live--Preview-purple)
 
 ## Executive Summary
-The Elderly Management System is a dynamic, AI-powered application designed to simplify and enhance the management of elderly care facilities. By leveraging real-time personalization via OpenAI and rich data handling capabilities with PostgreSQL, this solution ensures seamless operations while prioritizing resident well-being.
+The **Elderly Management System** is a secure and scalable platform designed to manage elderly care operations, such as resident records, healthcare planning, and real-time notifications. The solution prioritizes data security, compliance, and usability, leveraging AI-driven recommendations (via the OpenAI API) to enhance caregiving outcomes.
+
+---
 
 ## Key Features
-- **Comprehensive Resident Management**: Track, monitor, and update resident profiles, health metrics, and schedules in one intuitive interface.
-- **AI-Driven Personalization**: Utilize OpenAI models to generate activity recommendations, dietary suggestions, and more, tailored to each resident's needs.
-- **Streamlined Interface**: Built with Streamlit for easy navigation and user-friendly workflows.
-- **Secure Data Storage**: Centralized data repository with PostgreSQL, ensuring scalability and reliability.
-- **Role-Based Access Control (RBAC)**: Ensures that sensitive resident information is only accessible according to user roles (e.g., Admin, Healthcare Staff).
-- **Real-Time Notifications**: Keep staff updated on critical alerts and events.
-- **Scalable Architecture**: Built with modular components to support seamless future scaling.
+- **Role-Based Access Control (RBAC):** Enforces strict user permissions for sensitive operations server-side, validated through integration tests.
+- **AI-Assisted Recommendations:** Safely integrates with OpenAI API to provide non-clinical healthcare recommendations with human oversight and auditability.
+- **Secure Data Handling:** Supports AES-256 encryption, sensitive logging policies, and full auditability with documented retention and backup strategies.
+- **Streamlined Frontend:** Intuitive, responsive user interface built with Streamlit for real-time caregiving updates.
+- **Compliance-Ready Architecture:** Designed with compliance in mind, featuring secret management, session security, and network isolation.
+- **Dockerized Infrastructure:** Fully containerized deployment with Docker Compose, database schema migrations, and sanitized seed data for local reproducibility.
+- **Extensive Testing:** Authorization and integration tests ensure robust controls for sensitive data access.
+
+---
 
 ## Architecture & Workflow
 ```mermaid
 graph TD
-    A[User Interface - Streamlit] --> B[API Gateway]
-    B --> C[Resilient Backend System - Python]
-    C --> D[PostgreSQL Database]
-    C --> E[OpenAI Integration for Personalization]
-    D --> F[Resident Data Storage]
-    E --> G[AI-Based Recommendations]
-    B --> H[Role-Based Access Control]
-    H --> I[Data Privacy & Security Protocols]
+    A[Frontend (Streamlit)] -->|Requests| B[API Layer (Flask)]
+    B -->|Secure Queries| C[PostgreSQL Database]
+    B -->|Fetch Recommendations| D[OpenAI API]
+    C -->|Trigger Events| E[Notification System]
+    D -->|Validated Response| B
+    E --> B
+    
+    classDef secure fill:#f9f,stroke:#333,stroke-width:4px;
+    B, C, E class secure
 ```
+**Explanation of Workflow**: 
+1. User interacts with the Streamlit-based frontend. 
+2. API Layer handles input validation, access control, and secure calls to the database and OpenAI API.
+3. PostgreSQL stores encrypted sensitive data and triggers actionable notifications.
+4. AI-assisted recommendations are treated as non-clinical suggestions and undergo human review.
+5. Notifications and reports are securely propagated to caregivers in real time.
 
-1. **Streamlit (UI)**: Frontend designed for healthcare staff and administrators.
-2. **Backend Logic**: Handles database interactions, AI integrations, and access policies.
-3. **PostgreSQL Database**: Securely manages resident profiles, health metrics, and schedules.
-4. **OpenAI Integration**: Delivers AI-enhanced personalized services for residents.
+---
 
 ## Tech Stack & Tools Breakdown
-- **Python**: Core language for backend logic, API integrations, and AI processing.
-- **Streamlit**: Framework for building a clean, interactive user interface.
-- **PostgreSQL**: Relational database for reliable and secure data management.
-- **OpenAI API**: Enables intelligent personalization and recommendation systems.
+**Languages & Frameworks**
+- **Python 3.10**: Core language for both backend and AI integrations.
+- **Streamlit**: Frontend development framework for rapid UI prototyping.
+- **Flask**: API development and middleware for RBAC and encryption.
 
-## Data Security Protocols
-Protecting resident privacy is a top priority. Here's how the system ensures data security:
-- **Encrypted Data Storage**: Resident data is encrypted at rest and in transit using industry-standard AES-256.
-- **Role-Based Access Control (RBAC)**: Staff access is limited to the scope required for their roles, minimizing potential exposure.
-- **Activity Logging**: Every user interaction is logged to provide an auditable trail of access and modifications.
-- **Environment Isolation**: Database and backend services are hosted securely, with network segmentation applied to block unnecessary access.
-- **Regular Security Audits**: System undergoes periodic penetration testing and code reviews to identify and mitigate vulnerabilities.
-- **Data Anonymization**: Sensitive information is anonymized in non-production and analysis environments.
+**Data Storage & Security**
+- **PostgreSQL**: Primary relational database with schema migrations support.
+- **AES-256 Encryption**: Used for securing sensitive data, including healthcare records.
+
+**Integrations**
+- **OpenAI API**: Delivers AI-enhanced care suggestions, logged for provenance and validation.
+
+**Infrastructure**
+- **Docker Compose**: Standardized local and production environments.
+- **Nginx**: Reverse proxy for secure API routing and network isolation.
+
+---
 
 ## Quickstart / Installation
-Clone the repository and set up the system with the following steps:
+Follow these steps to deploy the Elderly Management System locally:
 
-1. **Clone the Repository**:
-   ```bash
-   git clone https://github.com/EF361/elderly-management-system.git
-   cd elderly-management-system
-   ```
+### Prerequisites
+- Install **Docker** and **Docker Compose**.
+- Ensure Python 3.10+ and PostgreSQL are set up (if not using Docker).
 
-2. **Set Up a Virtual Environment**:
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
-   ```
+### Steps
+```bash
+# 1. Clone the Repository
+git clone https://github.com/EF361/elderly-management-system.git
+cd elderly-management-system
 
-3. **Install Dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+# 2. Set Environment Variables
+cp .env.example .env
+# Update .env with PostgreSQL credentials, OpenAI API key, and other secrets.
 
-4. **Set Up PostgreSQL Database**:
-   - Create a database and configure the connection string in `.env`:
-     ```
-     DATABASE_URL=postgresql://user:password@localhost:5432/dbname
-     ```
+# 3. Build and Start Services
+docker-compose up --build
 
-5. **Export OpenAI API Key**:
-   ```bash
-   export OPENAI_API_KEY=your_openai_api_key
-   ```
+# 4. Apply Database Migrations
+docker exec -it elderly_management_backend bash -c "flask db upgrade"
 
-6. **Run the Application**:
-   ```bash
-   streamlit run app.py
-   ```
+# 5. Seed Database with Sanitized Test Data
+docker exec -it elderly_management_backend bash -c "python scripts/seed_data.py"
 
-7. **Access the Application**:
-   Navigate to `http://localhost:8501` in your browser.
+# 6. Access the Application
+# Open http://localhost:8501 in your browser to access the frontend.
+
+```
+
+---
+
+## Security & Compliance Highlights
+- **RBAC Enforcement**: Ensures sensitive operations like resident updates adhere to role-based permissions.
+- **Audit Logging**: All sensitive operations are logged with identifiers for traceability.
+- **Data Retention & Backup**: Backup jobs configured via Docker volumes; compliant with GDPR-like retention rules.
+- **Encryption and Secret Management**: All sensitive fields are encrypted at rest (AES-256), and runtime secrets are injected via environment variables.
+- **Threat Model**: Verifies controls for injection attacks, session hijacking, and unauthorized data access.
+
+Links to Evidence & Documentation:
+- **RBAC Tests**: [tests/rbac.test.py](tests/rbac.test.py)
+- **Schema & Database Migrations**: [migrations/](migrations/)
+- **Backup Strategy**: [docs/backup.md](docs/backup.md)
+- **Audit Logging**: [docs/audit-log-policy.md](docs/audit-log-policy.md)
+
+---
+
+## Developer Notes
+This repository was built and architected by **Alicia Goh (EF361)**, leveraging her expertise in AI-enhanced software engineering for operationally sensitive environments. Alicia's focus on compliance-grade solutions, hardened security, and developer-friendly ergonomics positions this system for scalable growth in both healthcare and eldercare industries.
+
+---
 
 ## License
-This project is licensed under the MIT License. See the [LICENSE](https://github.com/EF361/elderly-management-system/blob/main/LICENSE) file for details.
+The project is licensed under the **MIT License**. See [LICENSE](LICENSE) for details.
